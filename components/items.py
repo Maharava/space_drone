@@ -1,5 +1,6 @@
 import pygame
 from game_config import *
+from utils import load_image
 
 class Item:
     """Base class for all items in the game"""
@@ -12,23 +13,9 @@ class Item:
     
     def get_image(self, size=40):
         """Get the item image at the specified size"""
-        if not self.image:
-            self.load_image()
-        
-        return pygame.transform.scale(self.image, (size, size))
-    
-    def load_image(self, size=40):
-        """Load the item image or create a fallback"""
-        try:
-            self.image = pygame.image.load(f"assets/{self.name.lower().replace(' ', '_')}.png").convert_alpha()
-        except:
-            # Create a placeholder image
-            self.image = pygame.Surface((size, size), pygame.SRCALPHA)
-            pygame.draw.circle(self.image, GREY, (size // 2, size // 2), size // 2)
-            font = pygame.font.SysFont(None, 20)
-            text = font.render(self.name[0], True, WHITE)
-            self.image.blit(text, (size // 2 - text.get_width() // 2, 
-                                  size // 2 - text.get_height() // 2))
+        if not self.image or self.image.get_width() != size:
+            self.image = load_image(self.name, size=size)
+        return self.image
 
 # Define ore items
 class OreItem(Item):
@@ -37,14 +24,12 @@ class OreItem(Item):
         super().__init__(name, description, max_stack, value)
         self.color = color
     
-    def load_image(self, size=40):
-        """Load ore image or create a colored circle"""
-        try:
-            self.image = pygame.image.load(f"assets/{self.name.lower().replace(' ', '_')}.png").convert_alpha()
-        except:
-            # Create a colored ore circle
-            self.image = pygame.Surface((size, size), pygame.SRCALPHA)
-            pygame.draw.circle(self.image, self.color, (size // 2, size // 2), size // 2)
+    def get_image(self, size=40):
+        """Get ore image with specific color"""
+        if not self.image or self.image.get_width() != size:
+            self.image = load_image(self.name, size=size, 
+                                  fallback_color=self.color, is_circle=True)
+        return self.image
 
 # Define specific ore types
 LOW_GRADE_ORE = OreItem(

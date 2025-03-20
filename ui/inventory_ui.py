@@ -4,7 +4,7 @@ from ui.base_ui import BaseUI
 
 class InventoryUI(BaseUI):
     def __init__(self, player):
-        super().__init__()
+        super().__init__(title="Inventory")
         self.player = player
         
         # Calculate grid properties
@@ -15,16 +15,27 @@ class InventoryUI(BaseUI):
         
         # Calculate grid dimensions
         grid_width = INVENTORY_COLS * (self.cell_size + self.cell_margin) - self.cell_margin
-        grid_height = INVENTORY_ROWS * (self.cell_size + self.cell_margin) - self.cell_margin
         
         # Center the grid
         self.grid_left = self.bg_rect.centerx - grid_width // 2
         
         # Tooltip
         self.hover_cell = None
+        
+        # Calculate and store all cell positions
+        self.cells = []
+        for row in range(INVENTORY_ROWS):
+            row_cells = []
+            for col in range(INVENTORY_COLS):
+                cell_rect = self.get_cell_rect(row, col)
+                row_cells.append(cell_rect)
+            self.cells.append(row_cells)
     
     def update(self):
         mouse_pos = pygame.mouse.get_pos()
+        
+        # Call parent update for basic hover tracking
+        super().update()
         
         # Check if hovering over an inventory cell
         self.hover_cell = None
@@ -32,7 +43,7 @@ class InventoryUI(BaseUI):
         # Loop through grid cells
         for row in range(INVENTORY_ROWS):
             for col in range(INVENTORY_COLS):
-                cell_rect = self.get_cell_rect(row, col)
+                cell_rect = self.cells[row][col]
                 
                 # Check if mouse is over non-empty cell
                 if cell_rect.collidepoint(mouse_pos) and self.player.inventory[row][col]["item"] is not None:
@@ -49,9 +60,6 @@ class InventoryUI(BaseUI):
         # Draw base UI elements
         super().draw(screen)
         
-        # Draw title
-        self.draw_title(screen, "Inventory")
-        
         # Draw silver amount
         silver_text = self.font.render(f"Silver: {self.player.stats.silver}", True, SILVER)
         screen.blit(silver_text, (self.bg_rect.x + 20, self.bg_rect.top + 15))
@@ -60,7 +68,7 @@ class InventoryUI(BaseUI):
         for row in range(INVENTORY_ROWS):
             for col in range(INVENTORY_COLS):
                 # Draw cell background
-                cell_rect = self.get_cell_rect(row, col)
+                cell_rect = self.cells[row][col]
                 pygame.draw.rect(screen, GREY, cell_rect)
                 
                 # Draw item if cell has content

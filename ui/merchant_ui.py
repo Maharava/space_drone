@@ -6,7 +6,7 @@ from components.items import MERCHANT_ITEMS
 class MerchantUI(BaseUI):
     def __init__(self, player):
         # Larger UI for merchant screen
-        super().__init__(1/8, 1/8, 3/4, 3/4)
+        super().__init__(1/8, 1/8, 3/4, 3/4, title="Trading Post")
         self.player = player
         
         # Split UI into buy and sell sections
@@ -35,10 +35,17 @@ class MerchantUI(BaseUI):
                 "item": item,
                 "rect": button_rect
             })
+            # Add to clickable elements
+            self.add_clickable(f"buy_{i}", button_rect)
     
     def update_sell_buttons(self):
         """Update the sell section with player inventory items"""
         self.sell_buttons = []
+        
+        # Clear old sell clickables
+        sell_keys = [k for k in self.clickable_elements.keys() if k.startswith("sell_")]
+        for key in sell_keys:
+            self.remove_clickable(key)
         
         # Collect all unique items from player inventory
         sell_items = []
@@ -63,8 +70,12 @@ class MerchantUI(BaseUI):
                 "count": item_counts[item.name],
                 "rect": button_rect
             })
+            # Add to clickable elements
+            self.add_clickable(f"sell_{i}", button_rect)
     
     def update(self):
+        super().update()
+        
         mouse_pos = pygame.mouse.get_pos()
         
         # Reset hover state
@@ -86,14 +97,8 @@ class MerchantUI(BaseUI):
         self.update_sell_buttons()
     
     def draw(self, screen):
-        # Draw background
-        self.draw_background(screen)
-        
-        # Draw title
-        self.draw_title(screen, "Trading Post")
-        
-        # Draw close button
-        self.draw_close_button(screen)
+        # Draw base UI
+        super().draw(screen)
         
         # Draw silver amount
         silver_text = self.font.render(f"Silver: {self.player.stats.silver}", True, SILVER)
@@ -169,45 +174,52 @@ class MerchantUI(BaseUI):
     
     def handle_click(self, pos):
         # Check if close button clicked
-        if self.close_rect.collidepoint(pos):
+        result = super().handle_click(pos)
+        if result == "close":
             return "close"
         
         # Check buy buttons
-        for button in self.buy_buttons:
+        for i, button in enumerate(self.buy_buttons):
             if button["rect"].collidepoint(pos):
-                item = button["item"]
-                # Try to buy the item
-                if self.player.stats.silver >= item.value:
-                    if self.player.add_ore(item):  # Add item to inventory
-                        self.player.stats.silver -= item.value
-                    else:
-                        print("Inventory full!")
-                else:
-                    print("Not enough silver!")
+                self.buy_item(button["item"])
                 return None
         
         # Check sell buttons
-        for button in self.sell_buttons:
+        for i, button in enumerate(self.sell_buttons):
             if button["rect"].collidepoint(pos):
-                item = button["item"]
-                # Find the item in player inventory
-                for row in range(INVENTORY_ROWS):
-                    for col in range(INVENTORY_COLS):
-                        slot = self.player.inventory[row][col]
-                        if slot["item"] and slot["item"].name == item.name:
-                            # Remove one item and add value to silver
-                            slot["count"] -= 1
-                            self.player.stats.silver += item.value
-                            
-                            # If stack is empty, remove item type
-                            if slot["count"] <= 0:
-                                slot["item"] = None
-                                slot["count"] = 0
-                            
-                            self.player.total_ore -= 1
-                            
-                            # Update sell buttons after selling
-                            self.update_sell_buttons()
-                            return None
-                            
+                self.sell_item(button["item"])
+                return None
+                
         return None
+    
+    def buy_item(self, item):
+        """Buy an item from the merchant"""
+        if self.player.stats.silver >= item.value:
+            if self.player.add_ore(item):  # Add item to inventory
+                self.player.stats.silver -= item.value
+            else:
+                print("Inventory full!")
+        else:
+            print("Not enough silver!")
+    
+    def sell_item(self, item):
+        """Sell an item to the merchant"""
+        # Find the item in player inventory
+        for row in range(INVENTORY_ROWS):
+            for col in range(INVENTORY_COLS):
+                slot = self.player.inventory[row][col]
+                if slot["item"] and slot["item"].name == item.name:
+                    # Remove one item and add value to silver
+                    slot["count"] -= 1
+                    self.player.stats.silver += item.value
+                    
+                    # If stack is empty, remove item type
+                    if slot["count"] <= 0:
+                        slot["item"] = None
+                        slot["count"] = 0
+                    
+                    self.player.total_ore -= 1
+                    
+                    # Update sell buttons after selling
+                    self.update_sell_buttons()
+                    return

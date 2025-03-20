@@ -1,4 +1,5 @@
 import pygame
+from utils import load_image
 
 class Module:
     def __init__(self, name, description, value, stats=None):
@@ -9,22 +10,11 @@ class Module:
         self.image = None
     
     def get_image(self, size=40):
-        if not self.image:
-            self.load_image()
-        
-        return pygame.transform.scale(self.image, (size, size))
-    
-    def load_image(self, size=40):
-        try:
-            self.image = pygame.image.load(f"assets/module_{self.name.lower().replace(' ', '_')}.png").convert_alpha()
-        except:
-            # Create a placeholder image
-            self.image = pygame.Surface((size, size), pygame.SRCALPHA)
-            pygame.draw.rect(self.image, (100, 100, 150), (5, 5, size-10, size-10))
-            font = pygame.font.SysFont(None, 20)
-            text = font.render(self.name[0], True, (255, 255, 255))
-            self.image.blit(text, (size // 2 - text.get_width() // 2, 
-                                  size // 2 - text.get_height() // 2))
+        """Get properly sized module image"""
+        if not self.image or self.image.get_width() != size:
+            self.image = load_image(self.name, size=size, prefix="module_", 
+                                  fallback_color=(100, 100, 150))
+        return self.image
 
 # Engine modules
 ENGINE_BASIC = Module(
@@ -75,21 +65,21 @@ WEAPON_BASIC_LASER = Module(
     "Basic Laser", 
     "Standard laser with balanced stats.",
     value=150, 
-    stats={"damage": 1, "speed": 10, "cooldown": 300, "energy_cost": 1}
+    stats={"damage": 1, "speed": 10, "cooldown": 300, "energy_cost": 1, "color": (255, 0, 0), "size": (5, 10)}
 )
 
 WEAPON_RAPID_LASER = Module(
     "Rapid Laser", 
     "Faster firing laser with less damage per shot.",
     value=300, 
-    stats={"damage": 0.5, "speed": 12, "cooldown": 150, "energy_cost": 1}
+    stats={"damage": 0.5, "speed": 12, "cooldown": 150, "energy_cost": 1, "color": (0, 255, 0), "size": (3, 8)}
 )
 
 WEAPON_HEAVY_LASER = Module(
     "Heavy Laser", 
     "Powerful laser with slow firing rate.",
     value=400, 
-    stats={"damage": 3, "speed": 8, "cooldown": 500, "energy_cost": 3}
+    stats={"damage": 3, "speed": 8, "cooldown": 500, "energy_cost": 3, "color": (0, 0, 255), "size": (8, 15)}
 )
 
 # Scanner modules
