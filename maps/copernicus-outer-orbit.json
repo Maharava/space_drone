@@ -1,0 +1,19 @@
+{
+  "id": "copernicus-outer-orbit",
+  "name": "Copernicus Outer Orbit",
+  "type": "empty",
+  "connections": {
+    "north": null,
+    "east": null,
+    "south": "copernicus-belt",
+    "west": null
+  },
+  "background": "starfield_sparse",
+  "objects": [],
+  "metadata": {
+    "description": "The outer orbital region beyond the Copernicus Belt. Empty space with distant stars and occasional rogue asteroids.",
+    "danger_level": "low",
+    "resource_richness": "very_low",
+    "discovery_date": "2189"
+  }
+}
