@@ -3,6 +3,7 @@ import math
 from game_config import *
 from components.engine import Engine, ENGINE_BASIC
 from components.weapon import create_weapon, LASER_BASIC
+from components.hangar import Hangar, HANGAR_BASIC
 
 class PlayerStats:
     """Class to store player stats that can be upgraded"""
@@ -30,11 +31,15 @@ class Player(pygame.sprite.Sprite):
         # Components
         self.engine = Engine(ENGINE_BASIC)
         self.current_weapon = LASER_BASIC
+        self.hangar = Hangar(HANGAR_BASIC)  # New hangar component
         
         # Try to load image or use triangle
         try:
             self.original_image = pygame.image.load("assets/ship.png").convert_alpha()
-            self.original_image = pygame.transform.scale(self.original_image, (30, 30))
+            # Scale to appropriate size (620x620 source image)
+            scale_factor = 30 / 620
+            new_size = int(620 * scale_factor)
+            self.original_image = pygame.transform.scale(self.original_image, (new_size, new_size))
         except:
             # Create triangle if image not found
             self.original_image = pygame.Surface((30, 30), pygame.SRCALPHA)
@@ -56,6 +61,40 @@ class Player(pygame.sprite.Sprite):
         
         # Last time energy was regenerated
         self.last_energy_regen = pygame.time.get_ticks()
+        
+        # Add energy regeneration from hangar
+        self.stats.energy_regen += self.hangar.get_power_output()
+    
+    def add_ore(self, ore_type):
+        """Add an ore to inventory, finding an appropriate slot"""
+        # Convert old ore type string to item object
+        if isinstance(ore_type, str) and ore_type in ORE_TYPES:
+            item = ORE_TYPES[ore_type]
+        else:
+            item = ore_type  # Already an item object
+            
+        # Find a slot for the ore
+        for row in range(INVENTORY_ROWS):
+            for col in range(INVENTORY_COLS):
+                slot = self.inventory[row][col]
+                # Add to existing stack of same type if not full
+                if slot["item"] and slot["item"].name == item.name and slot["count"] < item.max_stack:
+                    slot["count"] += 1
+                    self.total_ore += 1
+                    return True
+        
+        # Find empty slot if no existing stack has room
+        for row in range(INVENTORY_ROWS):
+            for col in range(INVENTORY_COLS):
+                slot = self.inventory[row][col]
+                if slot["item"] is None:  # Empty slot
+                    slot["item"] = item
+                    slot["count"] = 1
+                    self.total_ore += 1
+                    return True
+        
+        # Inventory full
+        return False
     
     def update(self, game_state):
         # Skip updates if inventory is open
@@ -97,6 +136,12 @@ class Player(pygame.sprite.Sprite):
     def change_weapon(self, weapon_type):
         """Change to a different weapon type"""
         self.current_weapon = weapon_type
+    
+    def change_hangar(self, hangar_type):
+        """Change to a different hangar type"""
+        self.hangar.change_hangar(hangar_type)
+        # Update energy regeneration based on new hangar
+        self.stats.energy_regen = 1 + self.hangar.get_power_output()
     
     def add_ore(self, ore_type):
         """Add an ore to inventory, finding an appropriate slot"""
@@ -150,3 +195,15 @@ class Player(pygame.sprite.Sprite):
         
         # Check if destroyed
         return self.stats.hull_strength <= 0
+    
+    def get_inventory_capacity(self):
+        """Return max and current inventory capacity"""
+        total_slots = INVENTORY_COLS * INVENTORY_ROWS
+        used_slots = 0
+        
+        for row in self.inventory:
+            for slot in row:
+                if slot["type"] is not None:
+                    used_slots += 1
+        
+        return used_slots, total_slots

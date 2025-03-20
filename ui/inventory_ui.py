@@ -25,41 +25,6 @@ class InventoryUI:
         
         self.close_rect = self.close_img.get_rect(topright=(self.bg_rect.right - 10, self.bg_rect.top + 10))
         
-        # Ore images
-        self.ore_imgs = {}
-        
-        # Low-grade ore (brown)
-        try:
-            self.ore_imgs["low-grade"] = pygame.image.load("assets/low_grade_ore.png").convert_alpha()
-        except:
-            self.ore_imgs["low-grade"] = pygame.Surface((40, 40), pygame.SRCALPHA)
-            pygame.draw.circle(self.ore_imgs["low-grade"], BROWN, (20, 20), 20)
-        
-        # High-grade ore (yellow)
-        try:
-            self.ore_imgs["high-grade"] = pygame.image.load("assets/high_grade_ore.png").convert_alpha()
-        except:
-            self.ore_imgs["high-grade"] = pygame.Surface((40, 40), pygame.SRCALPHA)
-            pygame.draw.circle(self.ore_imgs["high-grade"], YELLOW, (20, 20), 20)
-        
-        # Rare ore (purple)
-        try:
-            self.ore_imgs["rare-ore"] = pygame.image.load("assets/rare_ore.png").convert_alpha()
-        except:
-            self.ore_imgs["rare-ore"] = pygame.Surface((40, 40), pygame.SRCALPHA)
-            pygame.draw.circle(self.ore_imgs["rare-ore"], PURPLE, (20, 20), 20)
-        
-        # Silver ore (silver)
-        try:
-            self.ore_imgs["silver"] = pygame.image.load("assets/silver_ore.png").convert_alpha()
-        except:
-            self.ore_imgs["silver"] = pygame.Surface((40, 40), pygame.SRCALPHA)
-            pygame.draw.circle(self.ore_imgs["silver"], SILVER, (20, 20), 20)
-        
-        # Resize all ore images
-        for key in self.ore_imgs:
-            self.ore_imgs[key] = pygame.transform.scale(self.ore_imgs[key], (40, 40))
-        
         # Tooltip
         self.hover_cell = None
         self.tooltip_bg = pygame.Surface((120, 30))
@@ -91,7 +56,7 @@ class InventoryUI:
                 cell_rect = self.get_cell_rect(row, col)
                 
                 # Check if mouse is over cell with content
-                if cell_rect.collidepoint(mouse_pos) and self.player.inventory[row][col]["type"] is not None:
+                if cell_rect.collidepoint(mouse_pos) and self.player.inventory[row][col]["item"] is not None:
                     self.hover_cell = (row, col)
                     break
     
@@ -113,6 +78,10 @@ class InventoryUI:
         # Draw close button
         screen.blit(self.close_img, self.close_rect)
         
+        # Draw silver amount
+        silver_text = self.font.render(f"Silver: {self.player.stats.silver}", True, SILVER)
+        screen.blit(silver_text, (self.bg_rect.x + 20, self.bg_rect.top + 15))
+        
         # Draw inventory grid
         for row in range(INVENTORY_ROWS):
             for col in range(INVENTORY_COLS):
@@ -122,10 +91,10 @@ class InventoryUI:
                 
                 # Draw item if cell has content
                 slot = self.player.inventory[row][col]
-                if slot["type"] is not None:
-                    # Draw ore image
-                    ore_img = self.ore_imgs[slot["type"]]
-                    screen.blit(ore_img, cell_rect.topleft)
+                if slot["item"] is not None:
+                    # Draw item image
+                    item_img = slot["item"].get_image(self.cell_size)
+                    screen.blit(item_img, cell_rect.topleft)
                     
                     # Draw count
                     count_text = self.small_font.render(str(slot["count"]), True, WHITE)
@@ -140,21 +109,41 @@ class InventoryUI:
         # Draw tooltip if hovering over an item
         if self.hover_cell:
             row, col = self.hover_cell
-            ore_type = self.player.inventory[row][col]["type"]
+            item = self.player.inventory[row][col]["item"]
             count = self.player.inventory[row][col]["count"]
             
-            tooltip = self.font.render(f"{ore_type} ({count})", True, WHITE)
+            # Create tooltip text
+            name_line = f"{item.name} ({count})"
+            value_line = f"Value: {item.value} silver each"
+            
+            tooltip_height = 55  # Height for two lines
+            tooltip_width = max(
+                self.font.size(name_line)[0],
+                self.small_font.size(value_line)[0],
+                self.small_font.size(item.description)[0]
+            ) + 20
+            
             mouse_pos = pygame.mouse.get_pos()
             
             # Draw tooltip background
-            tooltip_rect = self.tooltip_bg.get_rect(topleft=(mouse_pos[0] + 10, mouse_pos[1] + 10))
-            tooltip_rect.width = tooltip.get_width() + 10
+            tooltip_rect = pygame.Rect(mouse_pos[0] + 10, mouse_pos[1] + 10, tooltip_width, tooltip_height)
             tooltip_bg = pygame.Surface((tooltip_rect.width, tooltip_rect.height))
             tooltip_bg.set_alpha(200)
             tooltip_bg.fill((30, 30, 30))
             
+            # Make sure tooltip doesn't go off screen
+            if tooltip_rect.right > SCREEN_WIDTH:
+                tooltip_rect.right = SCREEN_WIDTH - 5
+            if tooltip_rect.bottom > SCREEN_HEIGHT:
+                tooltip_rect.bottom = SCREEN_HEIGHT - 5
+            
             screen.blit(tooltip_bg, tooltip_rect)
-            screen.blit(tooltip, (mouse_pos[0] + 15, mouse_pos[1] + 15))
+            
+            # Draw tooltip text
+            name_text = self.font.render(name_line, True, WHITE)
+            value_text = self.small_font.render(value_line, True, SILVER)
+            screen.blit(name_text, (tooltip_rect.x + 10, tooltip_rect.y + 10))
+            screen.blit(value_text, (tooltip_rect.x + 10, tooltip_rect.y + 35))
     
     def handle_click(self, pos):
         # Check if close button clicked

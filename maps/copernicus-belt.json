@@ -10,12 +10,10 @@
   },
   "background": "starfield_dense",
   "objects": [
-    // Large central asteroids forming the core of the belt
     {"type": "asteroid", "x": 1600, "y": 1200, "size": 50, "asteroid_type": "rich"},
     {"type": "asteroid", "x": 1450, "y": 1300, "size": 45, "asteroid_type": "rich"},
     {"type": "asteroid", "x": 1750, "y": 1100, "size": 48, "asteroid_type": "rich"},
     
-    // Belt formation - inner arc (mostly regular asteroids)
     {"type": "asteroid", "x": 800, "y": 600, "size": 30, "asteroid_type": "regular"},
     {"type": "asteroid", "x": 950, "y": 700, "size": 25, "asteroid_type": "dry"},
     {"type": "asteroid", "x": 1100, "y": 800, "size": 35, "asteroid_type": "regular"},
@@ -26,7 +24,6 @@
     {"type": "asteroid", "x": 2100, "y": 700, "size": 33, "asteroid_type": "regular"},
     {"type": "asteroid", "x": 2250, "y": 600, "size": 27, "asteroid_type": "regular"},
     
-    // Belt formation - outer arc (more dry asteroids)
     {"type": "asteroid", "x": 700, "y": 1800, "size": 32, "asteroid_type": "dry"},
     {"type": "asteroid", "x": 900, "y": 1700, "size": 28, "asteroid_type": "dry"},
     {"type": "asteroid", "x": 1100, "y": 1650, "size": 35, "asteroid_type": "regular"},
@@ -36,13 +33,11 @@
     {"type": "asteroid", "x": 2100, "y": 1700, "size": 31, "asteroid_type": "dry"},
     {"type": "asteroid", "x": 2300, "y": 1800, "size": 26, "asteroid_type": "regular"},
     
-    // Scattered asteroids throughout the sector (mixed types)
     {"type": "asteroid", "x": 500, "y": 1200, "size": 22, "asteroid_type": "dry"},
     {"type": "asteroid", "x": 2700, "y": 1200, "size": 24, "asteroid_type": "regular"},
     {"type": "asteroid", "x": 1600, "y": 400, "size": 20, "asteroid_type": "rich"},
     {"type": "asteroid", "x": 1600, "y": 2000, "size": 23, "asteroid_type": "regular"},
     
-    // Rich mining spots (clustered smaller asteroids - all rich type)
     {"type": "asteroid", "x": 800, "y": 1100, "size": 20, "asteroid_type": "rich"},
     {"type": "asteroid", "x": 830, "y": 1130, "size": 15, "asteroid_type": "rich"},
     {"type": "asteroid", "x": 780, "y": 1070, "size": 18, "asteroid_type": "rich"},
@@ -53,7 +48,6 @@
     {"type": "asteroid", "x": 2390, "y": 1340, "size": 19, "asteroid_type": "rich"},
     {"type": "asteroid", "x": 2420, "y": 1270, "size": 15, "asteroid_type": "rich"},
     
-    // Randomly placed asteroids to fill out the field (mostly regular)
     {"type": "asteroid", "x": 1200, "y": 500, "size": 25, "asteroid_type": "regular"},
     {"type": "asteroid", "x": 2000, "y": 500, "size": 28, "asteroid_type": "regular"},
     {"type": "asteroid", "x": 1200, "y": 1900, "size": 30, "asteroid_type": "dry"},

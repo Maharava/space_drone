@@ -2,8 +2,49 @@ import pygame
 import random
 import math
 from game_config import *
+from components.items import ORE_TYPES
 
 class Asteroid(pygame.sprite.Sprite):
+    # Track destroyed asteroids for respawning
+    respawn_queue = []
+    
+    @classmethod
+    def update_respawns(cls, all_sprites, asteroids_group):
+        # Check respawn queue and spawn new asteroids
+        for i in range(len(cls.respawn_queue) - 1, -1, -1):
+            asteroid_data = cls.respawn_queue[i]
+            asteroid_data["timer"] -= 1
+            
+            if asteroid_data["timer"] <= 0:
+                # Respawn at a random edge
+                new_asteroid = Asteroid(asteroid_type=asteroid_data["type"])
+                
+                # Choose a random edge (0=top, 1=right, 2=bottom, 3=left)
+                edge = random.randint(0, 3)
+                if edge == 0:  # Top
+                    x = random.randint(0, WORLD_WIDTH)
+                    y = 0
+                elif edge == 1:  # Right
+                    x = WORLD_WIDTH
+                    y = random.randint(0, WORLD_HEIGHT)
+                elif edge == 2:  # Bottom
+                    x = random.randint(0, WORLD_WIDTH)
+                    y = WORLD_HEIGHT
+                else:  # Left
+                    x = 0
+                    y = random.randint(0, WORLD_HEIGHT)
+                
+                # Set position
+                new_asteroid.rect.center = (x, y)
+                new_asteroid.position = pygame.math.Vector2(new_asteroid.rect.center)
+                
+                # Add to sprite groups
+                all_sprites.add(new_asteroid)
+                asteroids_group.add(new_asteroid)
+                
+                # Remove from queue
+                cls.respawn_queue.pop(i)
+    
     def __init__(self, asteroid_type="regular"):
         super().__init__()
         # Asteroid type affects ore drops
@@ -15,7 +56,10 @@ class Asteroid(pygame.sprite.Sprite):
             # Try to load type-specific asteroid image
             image_path = f"assets/asteroid_{asteroid_type}.png"
             self.image = pygame.image.load(image_path).convert_alpha()
-            self.image = pygame.transform.scale(self.image, (self.size, self.size))
+            # Scale properly assuming 620x620 source image
+            scale_factor = self.size / 620
+            new_size = max(10, int(620 * scale_factor))
+            self.image = pygame.transform.scale(self.image, (new_size, new_size))
         except:
             # Create circle if image not found, with color based on type
             self.image = pygame.Surface((self.size, self.size), pygame.SRCALPHA)
@@ -66,6 +110,13 @@ class Asteroid(pygame.sprite.Sprite):
     def damage(self, amount=1):
         self.health -= amount
         return self.health <= 0
+    
+    def schedule_respawn(self, time_frames):
+        """Add this asteroid to the respawn queue"""
+        Asteroid.respawn_queue.append({
+            "type": self.asteroid_type,
+            "timer": time_frames
+        })
     
     def get_ore_drops(self):
         """Returns a list of ores dropped by this asteroid based on type"""

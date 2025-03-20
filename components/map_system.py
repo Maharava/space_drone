@@ -4,6 +4,7 @@ import os
 import random
 from game_config import *
 from components.asteroid import Asteroid
+from components.space_station import SpaceStation
 
 class Area:
     def __init__(self, area_data, all_sprites, asteroids):
@@ -13,6 +14,8 @@ class Area:
         self.connections = area_data["connections"]
         self.all_sprites = all_sprites
         self.asteroids = asteroids
+        self.stations = pygame.sprite.Group()
+        self.saved_state = {}
         
         # Clear existing asteroids and load new ones
         for sprite in list(self.asteroids):
@@ -26,6 +29,10 @@ class Area:
         # Generate random objects if needed
         elif self.type == "asteroid_field":
             self.generate_random_asteroids()
+            
+        # Special case for Copernicus Outer Orbit - add space station
+        if self.id == "copernicus-outer-orbit":
+            self.add_space_station()
     
     def spawn_asteroid(self, data):
         asteroid_type = data.get("asteroid_type", "regular")
@@ -59,14 +66,56 @@ class Area:
             asteroid = Asteroid(asteroid_type=asteroid_type)
             self.all_sprites.add(asteroid)
             self.asteroids.add(asteroid)
+    
+    def add_space_station(self):
+        # Add a space station in the middle of the area
+        station = SpaceStation(position=(WORLD_WIDTH // 2, WORLD_HEIGHT // 2))
+        self.all_sprites.add(station)
+        self.stations.add(station)
+    
+    def save_state(self):
+        """Save the current state of this area"""
+        self.saved_state = {
+            "asteroids": []
+        }
+        
+        # Save asteroid positions, types and health
+        for asteroid in self.asteroids:
+            self.saved_state["asteroids"].append({
+                "position": (asteroid.position.x, asteroid.position.y),
+                "type": asteroid.asteroid_type,
+                "health": asteroid.health
+            })
+    
+    def restore_state(self):
+        """Restore the area to its saved state"""
+        if not self.saved_state:
+            return
+            
+        # Clear existing asteroids
+        for sprite in list(self.asteroids):
+            sprite.kill()
+        
+        # Restore asteroids
+        if "asteroids" in self.saved_state:
+            for asteroid_data in self.saved_state["asteroids"]:
+                asteroid = Asteroid(asteroid_type=asteroid_data["type"])
+                asteroid.position = pygame.math.Vector2(asteroid_data["position"])
+                asteroid.rect.center = asteroid_data["position"]
+                asteroid.health = asteroid_data["health"]
+                
+                self.all_sprites.add(asteroid)
+                self.asteroids.add(asteroid)
 
 class MapSystem:
     def __init__(self, all_sprites, asteroids):
         self.areas = {}
         self.current_area_id = None
         self.previous_area_id = None
+        self.jump_direction = None
         self.all_sprites = all_sprites
         self.asteroids = asteroids
+        self.saved_areas = {}
         
         # Load map data
         self.load_areas()
@@ -88,20 +137,34 @@ class MapSystem:
             except Exception as e:
                 print(f"Error loading {filename}: {str(e)}")
     
-    def change_area(self, area_id):
+    def change_area(self, area_id, direction=None):
         if area_id not in self.areas:
             print(f"Area '{area_id}' not found! Available areas: {list(self.areas.keys())}")
-            return False
+            return False, None
+        
+        # Save current area state if we have one
+        if self.current_area_id and self.current_area_id in self.saved_areas:
+            self.saved_areas[self.current_area_id].save_state()
         
         # Store previous area for back-jumps
         self.previous_area_id = self.current_area_id
         self.current_area_id = area_id
+        self.jump_direction = direction
         
-        # Load the new area
-        area_data = self.areas[area_id]
-        new_area = Area(area_data, self.all_sprites, self.asteroids)
-        print(f"Jumped to {new_area.name}")
-        return True
+        # Check if we've already visited this area
+        if area_id in self.saved_areas:
+            # Restore the area's saved state
+            self.saved_areas[area_id].restore_state()
+            return True, direction
+        else:
+            # Load the new area
+            area_data = self.areas[area_id]
+            new_area = Area(area_data, self.all_sprites, self.asteroids)
+            self.saved_areas[area_id] = new_area
+            print(f"Jumped to {new_area.name}")
+        
+        # Return success and jump direction
+        return True, direction
     
     def get_connection(self, direction):
         if not self.current_area_id:
@@ -127,4 +190,33 @@ class MapSystem:
     def jump_back(self):
         if self.previous_area_id:
             return self.change_area(self.previous_area_id)
-        return False
+        return False, None
+    
+    def get_opposite_direction(self, direction):
+        if direction == "north":
+            return "south"
+        elif direction == "south":
+            return "north"
+        elif direction == "east":
+            return "west"
+        elif direction == "west":
+            return "east"
+        return None
+    
+    def get_nearest_station(self, player_position):
+        """Find the nearest space station to the player"""
+        if not self.current_area_id or self.current_area_id not in self.saved_areas:
+            return None
+            
+        current_area = self.saved_areas[self.current_area_id]
+        
+        nearest_station = None
+        min_distance = float('inf')
+        
+        for station in current_area.stations:
+            dist = pygame.math.Vector2(station.rect.center).distance_to(player_position)
+            if dist < min_distance:
+                min_distance = dist
+                nearest_station = station
+        
+        return nearest_station

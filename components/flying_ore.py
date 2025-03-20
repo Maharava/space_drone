@@ -2,44 +2,68 @@ import pygame
 import random
 import math
 from game_config import *
+from components.items import ORE_TYPES
 
 class FlyingOre(pygame.sprite.Sprite):
     """Visual representation of ore flying towards the player after destroying an asteroid"""
     def __init__(self, position, ore_type, target_entity):
         super().__init__()
         self.position = pygame.math.Vector2(position)
-        self.ore_type = ore_type
         self.target = target_entity
         
         # Create visual based on ore type
         self.size = 10  # Small ore fragment
         
+        # Convert string ore type to item object if needed
+        if isinstance(ore_type, str):
+            if ore_type in ORE_TYPES:
+                self.ore_type = ore_type
+                self.item = ORE_TYPES[ore_type]
+            else:
+                # Handle unexpected ore types
+                print(f"Warning: Unknown ore type '{ore_type}'")
+                self.ore_type = "low-grade"  # Default to low-grade
+                self.item = ORE_TYPES["low-grade"]
+        else:
+            # Already an item object
+            self.ore_type = ore_type.name.lower().replace(" ", "-")
+            self.item = ore_type
+        
         # Try to load image or use circle
         try:
-            self.image = pygame.image.load(f"assets/{ore_type}.png").convert_alpha()
-            self.image = pygame.transform.scale(self.image, (self.size, self.size))
+            # First try to load from assets/ directory
+            img_name = self.ore_type.lower().replace(" ", "_")
+            self.image = pygame.image.load(f"assets/{img_name}.png").convert_alpha()
+            # Scale correctly - ore images are 320x320
+            scale_factor = self.size / 320
+            new_size = max(5, int(320 * scale_factor))
+            self.image = pygame.transform.scale(self.image, (new_size, new_size))
         except:
             # Create circle if image not found
             self.image = pygame.Surface((self.size, self.size), pygame.SRCALPHA)
             
-            # Color based on ore type
-            if ore_type == "low-grade":
-                color = BROWN
-            elif ore_type == "high-grade":
-                color = YELLOW
-            elif ore_type == "rare-ore":
-                color = PURPLE
-            elif ore_type == "silver":
-                color = SILVER
+            # Use item color if available
+            if hasattr(self.item, 'color'):
+                color = self.item.color
             else:
-                color = WHITE
+                # Fallback colors for ore types
+                if "low-grade" in self.ore_type:
+                    color = BROWN
+                elif "high-grade" in self.ore_type:
+                    color = YELLOW
+                elif "rare-ore" in self.ore_type:
+                    color = PURPLE
+                elif "silver" in self.ore_type.lower():
+                    color = SILVER
+                else:
+                    color = WHITE
             
             pygame.draw.circle(self.image, color, (self.size // 2, self.size // 2), self.size // 2)
         
         self.rect = self.image.get_rect(center=position)
         
-        # Movement parameters
-        self.speed = random.uniform(4.0, 7.0)  # Faster than regular objects
+        # Movement parameters with wider random range
+        self.speed = random.uniform(2.5, 6.0)  # More varied speeds
         self.collected = False
         
         # Generate a curved path
@@ -90,8 +114,9 @@ class FlyingOre(pygame.sprite.Sprite):
         # Update target position in case target moves
         self.target_pos = pygame.math.Vector2(self.target.rect.center)
         
-        # Move along bezier curve
-        self.curve_t += 0.02 * self.speed  # Adjust speed via t increment
+        # Move along bezier curve with random timing
+        curve_speed = random.uniform(0.015, 0.018) * self.speed
+        self.curve_t += curve_speed
         
         # Clamp t to [0, 1]
         if self.curve_t >= 1.0:
@@ -115,6 +140,6 @@ class FlyingOre(pygame.sprite.Sprite):
         
         # Check if ore has reached the player
         if self.rect.colliderect(self.target.rect):
-            # Add ore to player inventory
-            self.target.add_ore(self.ore_type)
+            # Add ore to player inventory - use the item object directly
+            self.target.add_ore(self.item)
             self.kill()

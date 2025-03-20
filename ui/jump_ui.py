@@ -74,7 +74,7 @@ class JumpUI:
     def handle_jump(self):
         """Process jump if conditions are met"""
         if not self.visible or not self.target_area:
-            return False
+            return False, None
         
         # Execute the jump
-        return self.map_system.change_area(self.target_area)
+        return self.map_system.change_area(self.target_area, self.direction)
