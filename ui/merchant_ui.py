@@ -1,30 +1,15 @@
 import pygame
 from game_config import *
+from ui.base_ui import BaseUI
 from components.items import MERCHANT_ITEMS
 
-class MerchantUI:
+class MerchantUI(BaseUI):
     def __init__(self, player):
+        # Larger UI for merchant screen
+        super().__init__(1/8, 1/8, 3/4, 3/4)
         self.player = player
-        self.font = pygame.font.SysFont(None, 24)
-        self.small_font = pygame.font.SysFont(None, 18)
-        self.title_font = pygame.font.SysFont(None, 30)
         
-        # Merchant background
-        self.bg_rect = pygame.Rect(SCREEN_WIDTH // 8, SCREEN_HEIGHT // 8, 
-                                   SCREEN_WIDTH * 3 // 4, SCREEN_HEIGHT * 3 // 4)
-        
-        # Close button
-        try:
-            self.close_img = pygame.image.load("assets/close.png").convert_alpha()
-            self.close_img = pygame.transform.scale(self.close_img, (20, 20))
-        except:
-            self.close_img = pygame.Surface((20, 20), pygame.SRCALPHA)
-            pygame.draw.line(self.close_img, RED, (0, 0), (20, 20), 3)
-            pygame.draw.line(self.close_img, RED, (0, 20), (20, 0), 3)
-        
-        self.close_rect = self.close_img.get_rect(topright=(self.bg_rect.right - 10, self.bg_rect.top + 10))
-        
-        # Split the UI into buy and sell sections
+        # Split UI into buy and sell sections
         self.buy_rect = pygame.Rect(self.bg_rect.x + 20, self.bg_rect.y + 50,
                                  self.bg_rect.width // 2 - 30, self.bg_rect.height - 80)
         
@@ -34,9 +19,6 @@ class MerchantUI:
         # Item buttons
         self.buy_buttons = []
         self.sell_buttons = []
-        
-        # Tooltip
-        self.hover_item = None
         
         # Initialize buy and sell items
         self.update_buy_buttons()
@@ -105,15 +87,13 @@ class MerchantUI:
     
     def draw(self, screen):
         # Draw background
-        pygame.draw.rect(screen, DARK_GREY, self.bg_rect)
-        pygame.draw.rect(screen, WHITE, self.bg_rect, 2)
+        self.draw_background(screen)
         
         # Draw title
-        title = self.title_font.render("Trading Post", True, WHITE)
-        screen.blit(title, (self.bg_rect.centerx - title.get_width() // 2, self.bg_rect.top + 15))
+        self.draw_title(screen, "Trading Post")
         
         # Draw close button
-        screen.blit(self.close_img, self.close_rect)
+        self.draw_close_button(screen)
         
         # Draw silver amount
         silver_text = self.font.render(f"Silver: {self.player.stats.silver}", True, SILVER)
@@ -184,45 +164,8 @@ class MerchantUI:
         # Draw tooltip if hovering over an item
         if self.hover_item:
             mouse_pos = pygame.mouse.get_pos()
-            
-            tooltip_bg = pygame.Surface((300, 60))
-            tooltip_bg.set_alpha(200)
-            tooltip_bg.fill((30, 30, 30))
-            
-            tooltip_rect = tooltip_bg.get_rect(topleft=(mouse_pos[0] + 10, mouse_pos[1] + 10))
-            
-            # Make sure tooltip doesn't go off screen
-            if tooltip_rect.right > SCREEN_WIDTH:
-                tooltip_rect.right = SCREEN_WIDTH - 5
-            if tooltip_rect.bottom > SCREEN_HEIGHT:
-                tooltip_rect.bottom = SCREEN_HEIGHT - 5
-                
-            screen.blit(tooltip_bg, tooltip_rect)
-            
-            # Item name and description with word wrap
-            name_text = self.font.render(self.hover_item.name, True, WHITE)
-            screen.blit(name_text, (tooltip_rect.x + 10, tooltip_rect.y + 10))
-            
-            # Word wrap for description
-            words = self.hover_item.description.split()
-            line = ""
-            y_pos = tooltip_rect.y + 35
-            
-            for word in words:
-                test_line = line + word + " "
-                test_width = self.small_font.size(test_line)[0]
-                
-                if test_width < tooltip_rect.width - 20:
-                    line = test_line
-                else:
-                    text = self.small_font.render(line, True, SILVER)
-                    screen.blit(text, (tooltip_rect.x + 10, y_pos))
-                    y_pos += 20
-                    line = word + " "
-            
-            if line:
-                text = self.small_font.render(line, True, SILVER)
-                screen.blit(text, (tooltip_rect.x + 10, y_pos))
+            tooltip_text = f"{self.hover_item.name}\n{self.hover_item.description}"
+            self.draw_tooltip(screen, tooltip_text, mouse_pos)
     
     def handle_click(self, pos):
         # Check if close button clicked
@@ -237,7 +180,6 @@ class MerchantUI:
                 if self.player.stats.silver >= item.value:
                     if self.player.add_ore(item):  # Add item to inventory
                         self.player.stats.silver -= item.value
-                        print(f"Bought {item.name} for {item.value} silver")
                     else:
                         print("Inventory full!")
                 else:
@@ -256,7 +198,6 @@ class MerchantUI:
                             # Remove one item and add value to silver
                             slot["count"] -= 1
                             self.player.stats.silver += item.value
-                            print(f"Sold {item.name} for {item.value} silver")
                             
                             # If stack is empty, remove item type
                             if slot["count"] <= 0:

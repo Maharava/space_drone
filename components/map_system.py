@@ -17,7 +17,7 @@ class Area:
         self.stations = pygame.sprite.Group()
         self.saved_state = {}
         
-        # Clear existing asteroids and load new ones
+        # Clear existing asteroids
         for sprite in list(self.asteroids):
             sprite.kill()
             
@@ -30,7 +30,7 @@ class Area:
         elif self.type == "asteroid_field":
             self.generate_random_asteroids()
             
-        # Special case for Copernicus Outer Orbit - add space station
+        # Add space station if needed
         if self.id == "copernicus-outer-orbit":
             self.add_space_station()
     
@@ -122,24 +122,33 @@ class MapSystem:
     
     def load_areas(self):
         if not os.path.exists("maps"):
-            print("Maps directory not found at:", os.path.abspath("maps"))
-            return
+            print("Maps directory not found. Creating directory...")
+            try:
+                os.makedirs("maps")
+            except:
+                print("Failed to create maps directory")
+            return False
         
         map_files = [f for f in os.listdir("maps") if f.endswith(".json")]
-        print(f"Found {len(map_files)} map file(s) in {os.path.abspath('maps')}")
-        
+        if not map_files:
+            print("No map files found")
+            return False
+            
+        success = False
         for filename in map_files:
             try:
                 with open(os.path.join("maps", filename), "r") as f:
                     area_data = json.load(f)
                     self.areas[area_data["id"]] = area_data
-                    print(f"Loaded area: {area_data['id']}")
+                    success = True
             except Exception as e:
                 print(f"Error loading {filename}: {str(e)}")
+        
+        return success
     
     def change_area(self, area_id, direction=None):
         if area_id not in self.areas:
-            print(f"Area '{area_id}' not found! Available areas: {list(self.areas.keys())}")
+            print(f"Area '{area_id}' not found!")
             return False, None
         
         # Save current area state if we have one
@@ -161,7 +170,6 @@ class MapSystem:
             area_data = self.areas[area_id]
             new_area = Area(area_data, self.all_sprites, self.asteroids)
             self.saved_areas[area_id] = new_area
-            print(f"Jumped to {new_area.name}")
         
         # Return success and jump direction
         return True, direction
@@ -220,55 +228,21 @@ class MapSystem:
                 nearest_station = station
         
         return nearest_station
-
-    def save_state(self):
-            """Save the current state of this area"""
-            self.saved_state = {
-                "asteroids": [],
-                "destroyed_asteroids": []
-            }
+    
+    def save_area_state(self, area_id):
+        """Save the state of a specific area"""
+        if area_id not in self.saved_areas:
+            return False
             
-            # Save asteroid positions, types and health
-            for asteroid in self.asteroids:
-                self.saved_state["asteroids"].append({
-                    "position": (asteroid.position.x, asteroid.position.y),
-                    "type": asteroid.asteroid_type,
-                    "health": asteroid.health
-                })
+        area = self.saved_areas[area_id]
+        area.save_state()
+        return True
+    
+    def restore_area_state(self, area_id):
+        """Restore a specific area to its saved state"""
+        if area_id not in self.saved_areas:
+            return False
             
-            # Keep track of respawning asteroids
-            for respawn_data in Asteroid.respawn_queue:
-                if respawn_data["timer"] > 0:  # Still waiting to respawn
-                    self.saved_state["destroyed_asteroids"].append({
-                        "type": respawn_data["type"],
-                        "timer": respawn_data["timer"]
-                    })
-        
-    def restore_state(self):
-        """Restore the area to its saved state"""
-        if not self.saved_state:
-            return
-            
-        # Clear existing asteroids
-        for sprite in list(self.asteroids):
-            sprite.kill()
-        
-        # Restore asteroids
-        if "asteroids" in self.saved_state:
-            for asteroid_data in self.saved_state["asteroids"]:
-                asteroid = Asteroid(asteroid_type=asteroid_data["type"])
-                asteroid.position = pygame.math.Vector2(asteroid_data["position"])
-                asteroid.rect.center = asteroid_data["position"]
-                asteroid.health = asteroid_data["health"]
-                
-                self.all_sprites.add(asteroid)
-                self.asteroids.add(asteroid)
-        
-        # Restore destroyed asteroids waiting to respawn
-        if "destroyed_asteroids" in self.saved_state:
-            for destroyed_data in self.saved_state["destroyed_asteroids"]:
-                # Add to the respawn queue
-                Asteroid.respawn_queue.append({
-                    "type": destroyed_data["type"],
-                    "timer": destroyed_data["timer"]
-                })
+        area = self.saved_areas[area_id]
+        area.restore_state()
+        return True

@@ -79,7 +79,7 @@ RAW_SILVER = OreItem(
     value=5
 )
 
-# Dictionary to map old ore types to new item objects
+# Define in one place
 ORE_TYPES = {
     "low-grade": LOW_GRADE_ORE,
     "high-grade": HIGH_GRADE_ORE,
@@ -87,7 +87,7 @@ ORE_TYPES = {
     "silver": RAW_SILVER
 }
 
-# Some basic equipment items for the merchant
+# Equipment items
 BASIC_SCANNER = Item(
     "Basic Scanner",
     "Simple scanner that helps detect asteroid composition.",
@@ -116,52 +116,7 @@ CARGO_EXPANDER = Item(
     value=120
 )
 
-# List of items available for purchase from merchants
-MERCHANT_ITEMS = [
-    BASIC_SCANNER,
-    MINING_LASER_UPGRADE,
-    SHIELD_BOOSTER,
-    CARGO_EXPANDER
-]
-
-ORE_TYPES = {
-    "low-grade": LOW_GRADE_ORE,
-    "high-grade": HIGH_GRADE_ORE,
-    "rare-ore": RARE_ORE,
-    "silver": RAW_SILVER,
-    "Raw Silver": RAW_SILVER  # Add this for consistency
-}
-
-# Some basic equipment items for the merchant
-BASIC_SCANNER = Item(
-    "Basic Scanner",
-    "Simple scanner that helps detect asteroid composition.",
-    max_stack=1,
-    value=50
-)
-
-MINING_LASER_UPGRADE = Item(
-    "Mining Laser Upgrade",
-    "Increases mining laser efficiency by 15%.",
-    max_stack=1,
-    value=100
-)
-
-SHIELD_BOOSTER = Item(
-    "Shield Booster",
-    "Enhances shield capacity by 20 points.",
-    max_stack=1,
-    value=75
-)
-
-CARGO_EXPANDER = Item(
-    "Cargo Expander",
-    "Increases cargo capacity by 10 slots.",
-    max_stack=1,
-    value=120
-)
-
-# New resource items
+# Resource items
 BASIC_METAL = Item(
     "Basic Metal",
     "Common metal extracted from ore processing.",
@@ -183,7 +138,7 @@ ELECTRONICS = Item(
     value=15
 )
 
-# List of items available for purchase from merchants
+# Define merchant items once
 MERCHANT_ITEMS = [
     BASIC_SCANNER,
     MINING_LASER_UPGRADE,

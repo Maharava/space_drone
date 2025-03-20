@@ -20,8 +20,15 @@ MISSILE = WeaponType("Missile", 5, 6, 800, YELLOW, (8, 12), 5)
 
 class Weapon(pygame.sprite.Sprite):
     """Base class for all weapon projectiles"""
-    def __init__(self, position, direction, weapon_type):
+    def __init__(self, position=None, direction=None, weapon_type=None):
         super().__init__()
+        self.active = False
+        
+        if position and direction and weapon_type:
+            self.initialize(position, direction, weapon_type)
+    
+    def initialize(self, position, direction, weapon_type):
+        """Initialize for use from pool"""
         self.position = pygame.math.Vector2(position)
         self.direction = pygame.math.Vector2(direction)
         self.weapon_type = weapon_type
@@ -30,6 +37,7 @@ class Weapon(pygame.sprite.Sprite):
         self.image = pygame.Surface(weapon_type.size)
         self.image.fill(weapon_type.color)
         self.rect = self.image.get_rect(center=position)
+        self.active = True
     
     def update(self, game_state):
         """Update position and check bounds"""
@@ -43,9 +51,11 @@ class Weapon(pygame.sprite.Sprite):
         # Remove if off world
         if (self.position.x < 0 or self.position.x > WORLD_WIDTH or 
             self.position.y < 0 or self.position.y > WORLD_HEIGHT):
+            self.active = False
             self.kill()
 
 # Factory function to create weapons
 def create_weapon(weapon_type, position, direction):
     """Create a weapon of the specified type"""
-    return Weapon(position, direction, weapon_type)
+    weapon = Weapon(position, direction, weapon_type)
+    return weapon

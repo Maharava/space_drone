@@ -1,26 +1,11 @@
 import pygame
 from game_config import *
+from ui.base_ui import BaseUI
 
-class HangarUI:
+class HangarUI(BaseUI):
     def __init__(self, player):
+        super().__init__()
         self.player = player
-        self.font = pygame.font.SysFont(None, 24)
-        self.small_font = pygame.font.SysFont(None, 18)
-        
-        # Hangar background
-        self.bg_rect = pygame.Rect(SCREEN_WIDTH // 6, SCREEN_HEIGHT // 6, 
-                                   SCREEN_WIDTH * 2 // 3, SCREEN_HEIGHT * 2 // 3)
-        
-        # Close button
-        try:
-            self.close_img = pygame.image.load("assets/close.png").convert_alpha()
-            self.close_img = pygame.transform.scale(self.close_img, (20, 20))
-        except:
-            self.close_img = pygame.Surface((20, 20), pygame.SRCALPHA)
-            pygame.draw.line(self.close_img, RED, (0, 0), (20, 20), 3)
-            pygame.draw.line(self.close_img, RED, (0, 20), (20, 0), 3)
-        
-        self.close_rect = self.close_img.get_rect(topright=(self.bg_rect.right - 10, self.bg_rect.top + 10))
         
         # Hangar grid for drones
         self.grid_margin = 10
@@ -71,15 +56,13 @@ class HangarUI:
     
     def draw(self, screen):
         # Draw background
-        pygame.draw.rect(screen, DARK_GREY, self.bg_rect)
-        pygame.draw.rect(screen, WHITE, self.bg_rect, 2)
+        self.draw_background(screen)
         
         # Draw title
-        title = self.font.render("Drone Bay", True, WHITE)
-        screen.blit(title, (self.bg_rect.centerx - title.get_width() // 2, self.bg_rect.top + 15))
+        self.draw_title(screen, "Drone Bay")
         
         # Draw close button
-        screen.blit(self.close_img, self.close_rect)
+        self.draw_close_button(screen)
         
         # Draw drone slots
         for i, slot in enumerate(self.drone_slots):
@@ -108,20 +91,11 @@ class HangarUI:
         if self.hover_cell is not None:
             mouse_pos = pygame.mouse.get_pos()
             
-            tooltip_bg = pygame.Surface((150, 30))
-            tooltip_bg.set_alpha(200)
-            tooltip_bg.fill((30, 30, 30))
-            
             tooltip_text = "Empty Drone Slot"
             if self.drone_slots[self.hover_cell]["type"]:
                 tooltip_text = f"Drone: {self.drone_slots[self.hover_cell]['type']}"
             
-            tooltip = self.small_font.render(tooltip_text, True, WHITE)
-            tooltip_rect = tooltip_bg.get_rect(topleft=(mouse_pos[0] + 10, mouse_pos[1] + 10))
-            tooltip_rect.width = tooltip.get_width() + 10
-            
-            screen.blit(tooltip_bg, tooltip_rect)
-            screen.blit(tooltip, (mouse_pos[0] + 15, mouse_pos[1] + 15))
+            self.draw_tooltip(screen, tooltip_text, mouse_pos)
     
     def handle_click(self, pos):
         # Check if close button clicked

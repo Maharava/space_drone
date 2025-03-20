@@ -10,16 +10,16 @@ class Asteroid(pygame.sprite.Sprite):
     
     @classmethod
     def update_respawns(cls, all_sprites, asteroids_group):
-        # Check respawn queue and spawn new asteroids
+        # Process respawn queue
         for i in range(len(cls.respawn_queue) - 1, -1, -1):
             asteroid_data = cls.respawn_queue[i]
             asteroid_data["timer"] -= 1
             
             if asteroid_data["timer"] <= 0:
-                # Respawn at a random edge
+                # Respawn at random edge
                 new_asteroid = Asteroid(asteroid_type=asteroid_data["type"])
                 
-                # Choose a random edge (0=top, 1=right, 2=bottom, 3=left)
+                # Choose edge (0=top, 1=right, 2=bottom, 3=left)
                 edge = random.randint(0, 3)
                 if edge == 0:  # Top
                     x = random.randint(0, WORLD_WIDTH)
@@ -47,39 +47,35 @@ class Asteroid(pygame.sprite.Sprite):
     
     def __init__(self, asteroid_type="regular"):
         super().__init__()
-        # Asteroid type affects ore drops
+        # Set asteroid type (affects ore drops)
         self.asteroid_type = asteroid_type
         
-        # Choose from 5 predefined sizes between 32x32 and 96x96
+        # Choose from predefined sizes
         size_options = [32, 48, 64, 80, 96]
         self.size = random.choice(size_options)
         
-        # Choose one of five random asteroid images
+        # Choose random asteroid image (1-5)
         asteroid_num = random.randint(1, 5)
         
         try:
-            # Try to load one of the 5 asteroid images
-            image_path = f"assets/asteroid_{asteroid_num}.png"
-            self.original_image = pygame.image.load(image_path).convert_alpha()
-            # Scale properly assuming 480x480 source image
-            scale_factor = self.size / 480
+            # Try loading asteroid image
+            self.original_image = pygame.image.load(f"assets/asteroid_{asteroid_num}.png").convert_alpha()
+            scale_factor = self.size / 480  # Assuming 480x480 source image
             new_size = int(480 * scale_factor)
             self.original_image = pygame.transform.scale(self.original_image, (new_size, new_size))
         except:
-            # Create circle if image not found
+            # Fallback to circle if image not found
             self.original_image = pygame.Surface((self.size, self.size), pygame.SRCALPHA)
             pygame.draw.circle(self.original_image, GREY, (self.size // 2, self.size // 2), self.size // 2)
         
-        # Set up rotation properties
+        # Set rotation properties
         self.angle = 0
-        self.rotation_speed = random.uniform(0.1, 0.5)  # Slow rotation, varying speeds
-        if random.random() < 0.5:  # 50% chance to rotate counterclockwise
-            self.rotation_speed *= -1
-            
+        self.rotation_speed = random.uniform(0.1, 0.5) * random.choice([-1, 1])
+        
         # Start with unrotated image
         self.image = self.original_image.copy()
         
-        # Random position anywhere in the world
+        # Random position
         x = random.randint(50, WORLD_WIDTH - 50)
         y = random.randint(50, WORLD_HEIGHT - 50)
                 
@@ -87,13 +83,13 @@ class Asteroid(pygame.sprite.Sprite):
         self.position = pygame.math.Vector2(self.rect.center)
         self.health = self.size // 10  # Health based on size
         
-        # Random very slow movement
+        # Slow random movement
         angle = random.uniform(0, math.pi * 2)
         self.velocity = pygame.math.Vector2(math.cos(angle), math.sin(angle))
-        self.speed = random.uniform(0.1, 0.3)  # Greatly reduced speed
+        self.speed = random.uniform(0.1, 0.3)
     
     def update(self, game_state):
-        # Skip updates if inventory is open
+        # Skip updates if not in gameplay state
         if game_state != 0:  # GAME_RUNNING = 0
             return
         
@@ -127,73 +123,69 @@ class Asteroid(pygame.sprite.Sprite):
         return self.health <= 0
     
     def schedule_respawn(self, time_frames):
-        """Add this asteroid to the respawn queue"""
+        """Add to respawn queue"""
         Asteroid.respawn_queue.append({
             "type": self.asteroid_type,
             "timer": time_frames
         })
     
     def get_ore_drops(self):
-        """Returns a list of ores dropped by this asteroid based on type"""
-        # Size determines how many ore pieces drop
+        """Returns ore items dropped by asteroid"""
+        # Number of drops based on size
         drops = []
         
-        # Base number of drops based on size
+        # Base drops from size
         drop_count = max(1, self.size // 16)
         
-        # Adjust drop count based on asteroid type
+        # Adjust by asteroid type
         if self.asteroid_type == "rich":
-            # Rich asteroids give 25% more ore
-            drop_count = int(drop_count * 1.25)
-            drop_count = max(2, drop_count)  # Minimum 2 drops for rich
+            drop_count = max(2, int(drop_count * 1.25))  # Rich = 25% more, min 2
         elif self.asteroid_type == "dry":
-            # Dry asteroids give 25% less ore
-            drop_count = int(drop_count * 0.75)
-            drop_count = max(1, drop_count)  # Minimum 1 drop
+            drop_count = max(1, int(drop_count * 0.75))  # Dry = 25% less, min 1
         
-        # Add random variation
+        # Add variation
         drop_count += random.randint(-1, 2)
         drop_count = max(1, drop_count)  # Minimum 1 drop
         
+        # Get ore drops
         for _ in range(drop_count):
-            # Get ore type based on asteroid type
-            drops.append(self._determine_ore_type())
+            ore_type = self._determine_ore_type()
+            drops.append(ORE_TYPES[ore_type])
         
         return drops
     
     def _determine_ore_type(self):
-        """Determine ore type based on asteroid type and random chance"""
+        """Determine ore type based on asteroid type"""
         roll = random.random()
         
-        # Different ore distributions based on asteroid type
+        # Different distributions by asteroid type
         if self.asteroid_type == "rich":
-            # Rich asteroids have better chances for rare materials
+            # Rich asteroids have better rare materials
             if roll < 0.4:
-                return "low-grade"  # 40% chance (reduced)
+                return "low-grade"    # 40%
             elif roll < 0.7:
-                return "high-grade"  # 30% chance (increased)
+                return "high-grade"   # 30%
             elif roll < 0.9:
-                return "rare-ore"    # 20% chance (increased)
+                return "rare-ore"     # 20%
             else:
-                return "silver"      # 10% chance (increased)
+                return "silver"       # 10%
                 
         elif self.asteroid_type == "dry":
-            # Dry asteroids have no silver and very little rare ore
+            # Dry asteroids have no silver and less rare ore
             if roll < 0.7:
-                return "low-grade"   # 70% chance (increased)
+                return "low-grade"    # 70%
             elif roll < 0.95:
-                return "high-grade"  # 25% chance (reduced)
+                return "high-grade"   # 25%
             else:
-                return "rare-ore"    # 5% chance (reduced)
-                                     # 0% chance for silver
+                return "rare-ore"     # 5%
                 
         else:  # Regular asteroid
             # Standard distribution
             if roll < 0.5:
-                return "low-grade"   # 50% chance
+                return "low-grade"    # 50%
             elif roll < 0.8:
-                return "high-grade"  # 30% chance
+                return "high-grade"   # 30%
             elif roll < 0.95:
-                return "rare-ore"    # 15% chance
+                return "rare-ore"     # 15%
             else:
-                return "silver"      # 5% chance
+                return "silver"       # 5%
