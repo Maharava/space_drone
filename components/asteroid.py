@@ -50,29 +50,34 @@ class Asteroid(pygame.sprite.Sprite):
         # Asteroid type affects ore drops
         self.asteroid_type = asteroid_type
         
-        # Try to load appropriate image based on type or use circle
-        self.size = random.randint(20, 50)
+        # Choose from 5 predefined sizes between 32x32 and 96x96
+        size_options = [32, 48, 64, 80, 96]
+        self.size = random.choice(size_options)
+        
+        # Choose one of five random asteroid images
+        asteroid_num = random.randint(1, 5)
+        
         try:
-            # Try to load type-specific asteroid image
-            image_path = f"assets/asteroid_{asteroid_type}.png"
-            self.image = pygame.image.load(image_path).convert_alpha()
-            # Scale properly assuming 620x620 source image
-            scale_factor = self.size / 620
-            new_size = max(10, int(620 * scale_factor))
-            self.image = pygame.transform.scale(self.image, (new_size, new_size))
+            # Try to load one of the 5 asteroid images
+            image_path = f"assets/asteroid_{asteroid_num}.png"
+            self.original_image = pygame.image.load(image_path).convert_alpha()
+            # Scale properly assuming 480x480 source image
+            scale_factor = self.size / 480
+            new_size = int(480 * scale_factor)
+            self.original_image = pygame.transform.scale(self.original_image, (new_size, new_size))
         except:
-            # Create circle if image not found, with color based on type
-            self.image = pygame.Surface((self.size, self.size), pygame.SRCALPHA)
+            # Create circle if image not found
+            self.original_image = pygame.Surface((self.size, self.size), pygame.SRCALPHA)
+            pygame.draw.circle(self.original_image, GREY, (self.size // 2, self.size // 2), self.size // 2)
+        
+        # Set up rotation properties
+        self.angle = 0
+        self.rotation_speed = random.uniform(0.1, 0.5)  # Slow rotation, varying speeds
+        if random.random() < 0.5:  # 50% chance to rotate counterclockwise
+            self.rotation_speed *= -1
             
-            # Different colors for different asteroid types
-            if asteroid_type == "rich":
-                color = (120, 120, 150)  # Slightly blueish gray for rich
-            elif asteroid_type == "dry":
-                color = (150, 130, 100)  # Brownish for dry
-            else:
-                color = GREY  # Regular gray for normal
-                
-            pygame.draw.circle(self.image, color, (self.size // 2, self.size // 2), self.size // 2)
+        # Start with unrotated image
+        self.image = self.original_image.copy()
         
         # Random position anywhere in the world
         x = random.randint(50, WORLD_WIDTH - 50)
@@ -80,7 +85,7 @@ class Asteroid(pygame.sprite.Sprite):
                 
         self.rect = self.image.get_rect(center=(x, y))
         self.position = pygame.math.Vector2(self.rect.center)
-        self.health = self.size // 5
+        self.health = self.size // 10  # Health based on size
         
         # Random very slow movement
         angle = random.uniform(0, math.pi * 2)
@@ -91,7 +96,8 @@ class Asteroid(pygame.sprite.Sprite):
         # Skip updates if inventory is open
         if game_state != 0:  # GAME_RUNNING = 0
             return
-            
+        
+        # Update position
         self.position += self.velocity * self.speed
         
         # Wrap around world boundaries
@@ -105,7 +111,16 @@ class Asteroid(pygame.sprite.Sprite):
         elif self.position.y > WORLD_HEIGHT:
             self.position.y = 0
         
-        self.rect.center = self.position
+        # Update rotation
+        self.angle += self.rotation_speed
+        if self.angle >= 360:
+            self.angle -= 360
+        elif self.angle < 0:
+            self.angle += 360
+            
+        # Rotate image and update rect
+        self.image = pygame.transform.rotate(self.original_image, self.angle)
+        self.rect = self.image.get_rect(center=self.position)
     
     def damage(self, amount=1):
         self.health -= amount
@@ -124,7 +139,7 @@ class Asteroid(pygame.sprite.Sprite):
         drops = []
         
         # Base number of drops based on size
-        drop_count = max(1, self.size // 10)
+        drop_count = max(1, self.size // 16)
         
         # Adjust drop count based on asteroid type
         if self.asteroid_type == "rich":

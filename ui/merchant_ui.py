@@ -1,6 +1,6 @@
 import pygame
 from game_config import *
-from components.items import MERCHANT_ITEMS, ORE_TYPES
+from components.items import MERCHANT_ITEMS
 
 class MerchantUI:
     def __init__(self, player):
@@ -203,8 +203,6 @@ class MerchantUI:
             name_text = self.font.render(self.hover_item.name, True, WHITE)
             screen.blit(name_text, (tooltip_rect.x + 10, tooltip_rect.y + 10))
             
-            desc_text = self.small_font.render(self.hover_item.description, True, SILVER)
-            
             # Word wrap for description
             words = self.hover_item.description.split()
             line = ""
@@ -266,6 +264,9 @@ class MerchantUI:
                                 slot["count"] = 0
                             
                             self.player.total_ore -= 1
+                            
+                            # Update sell buttons after selling
+                            self.update_sell_buttons()
                             return None
                             
         return None

@@ -7,9 +7,6 @@ class InventoryUI:
         self.font = pygame.font.SysFont(None, 24)
         self.small_font = pygame.font.SysFont(None, 18)
         
-        # Store reference to game state
-        self.game_state = None
-        
         # Inventory background
         self.bg_rect = pygame.Rect(SCREEN_WIDTH // 6, SCREEN_HEIGHT // 6, 
                                    SCREEN_WIDTH * 2 // 3, SCREEN_HEIGHT * 2 // 3)

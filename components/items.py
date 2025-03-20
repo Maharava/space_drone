@@ -131,3 +131,62 @@ ORE_TYPES = {
     "silver": RAW_SILVER,
     "Raw Silver": RAW_SILVER  # Add this for consistency
 }
+
+# Some basic equipment items for the merchant
+BASIC_SCANNER = Item(
+    "Basic Scanner",
+    "Simple scanner that helps detect asteroid composition.",
+    max_stack=1,
+    value=50
+)
+
+MINING_LASER_UPGRADE = Item(
+    "Mining Laser Upgrade",
+    "Increases mining laser efficiency by 15%.",
+    max_stack=1,
+    value=100
+)
+
+SHIELD_BOOSTER = Item(
+    "Shield Booster",
+    "Enhances shield capacity by 20 points.",
+    max_stack=1,
+    value=75
+)
+
+CARGO_EXPANDER = Item(
+    "Cargo Expander",
+    "Increases cargo capacity by 10 slots.",
+    max_stack=1,
+    value=120
+)
+
+# New resource items
+BASIC_METAL = Item(
+    "Basic Metal",
+    "Common metal extracted from ore processing.",
+    max_stack=50,
+    value=2
+)
+
+ALLOY = Item(
+    "Alloy",
+    "Refined metal alloy used in ship and drone construction.",
+    max_stack=30,
+    value=10
+)
+
+ELECTRONICS = Item(
+    "Electronics",
+    "Electronic components for advanced modules.",
+    max_stack=20,
+    value=15
+)
+
+# List of items available for purchase from merchants
+MERCHANT_ITEMS = [
+    BASIC_SCANNER,
+    MINING_LASER_UPGRADE,
+    SHIELD_BOOSTER,
+    CARGO_EXPANDER
+]

@@ -6,33 +6,18 @@ from components.items import ORE_TYPES
 
 class FlyingOre(pygame.sprite.Sprite):
     """Visual representation of ore flying towards the player after destroying an asteroid"""
-    def __init__(self, position, ore_type, target_entity):
+    def __init__(self, position, item, target_entity):
         super().__init__()
         self.position = pygame.math.Vector2(position)
         self.target = target_entity
+        self.item = item
         
-        # Create visual based on ore type
+        # Create visual based on item
         self.size = 10  # Small ore fragment
-        
-        # Convert string ore type to item object if needed
-        if isinstance(ore_type, str):
-            if ore_type in ORE_TYPES:
-                self.ore_type = ore_type
-                self.item = ORE_TYPES[ore_type]
-            else:
-                # Handle unexpected ore types
-                print(f"Warning: Unknown ore type '{ore_type}'")
-                self.ore_type = "low-grade"  # Default to low-grade
-                self.item = ORE_TYPES["low-grade"]
-        else:
-            # Already an item object
-            self.ore_type = ore_type.name.lower().replace(" ", "-")
-            self.item = ore_type
         
         # Try to load image or use circle
         try:
-            # First try to load from assets/ directory
-            img_name = self.ore_type.lower().replace(" ", "_")
+            img_name = self.item.name.lower().replace(" ", "_")
             self.image = pygame.image.load(f"assets/{img_name}.png").convert_alpha()
             # Scale correctly - ore images are 320x320
             scale_factor = self.size / 320
@@ -42,34 +27,23 @@ class FlyingOre(pygame.sprite.Sprite):
             # Create circle if image not found
             self.image = pygame.Surface((self.size, self.size), pygame.SRCALPHA)
             
-            # Use item color if available
+            # Use item color if it's an OreItem
             if hasattr(self.item, 'color'):
                 color = self.item.color
             else:
-                # Fallback colors for ore types
-                if "low-grade" in self.ore_type:
-                    color = BROWN
-                elif "high-grade" in self.ore_type:
-                    color = YELLOW
-                elif "rare-ore" in self.ore_type:
-                    color = PURPLE
-                elif "silver" in self.ore_type.lower():
-                    color = SILVER
-                else:
-                    color = WHITE
+                color = WHITE
             
             pygame.draw.circle(self.image, color, (self.size // 2, self.size // 2), self.size // 2)
         
         self.rect = self.image.get_rect(center=position)
         
-        # Movement parameters with wider random range
+        # Movement parameters with random speeds
         self.speed = random.uniform(2.5, 6.0)  # More varied speeds
-        self.collected = False
         
         # Generate a curved path
         self.generate_curved_path()
         
-        # Life timer to prevent orphaned ores (will be collected before this expires)
+        # Life timer to prevent orphaned ores
         self.life_timer = 180  # 3 seconds at 60 FPS
         
     def generate_curved_path(self):
@@ -81,7 +55,7 @@ class FlyingOre(pygame.sprite.Sprite):
         perp = pygame.math.Vector2(-target_vec.y, target_vec.x)
         perp.normalize_ip()
         
-        # Scale perpendicular based on distance (more curve for longer distances)
+        # Scale perpendicular based on distance
         distance = target_vec.length()
         curve_strength = min(distance * 0.5, 200)  # Cap maximum curve
         
@@ -140,6 +114,6 @@ class FlyingOre(pygame.sprite.Sprite):
         
         # Check if ore has reached the player
         if self.rect.colliderect(self.target.rect):
-            # Add ore to player inventory - use the item object directly
+            # Add ore to player inventory
             self.target.add_ore(self.item)
             self.kill()

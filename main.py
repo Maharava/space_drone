@@ -10,9 +10,10 @@ from components.camera import Camera
 from components.engine import Engine
 from components.map_system import MapSystem
 from components.flying_ore import FlyingOre
+from components.space_station import SpaceStation
 from ui.inventory_ui import InventoryUI
-from ui.jump_ui import JumpUI
 from ui.hangar_ui import HangarUI
+from ui.jump_ui import JumpUI
 from ui.conversation_ui import ConversationUI
 from ui.interact_ui import InteractUI
 from ui.merchant_ui import MerchantUI

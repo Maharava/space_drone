@@ -19,8 +19,14 @@ ENGINE_HEAVY = EngineType("Heavy Engine", 3.5, 0.1, 2.0, 0.8)
 
 class Engine:
     """Engine class for controlling ship movement"""
-    def __init__(self, engine_type=ENGINE_BASIC):
-        self.engine_type = engine_type
+    def __init__(self, engine_type=None):
+        # Ensure we have a valid engine type
+        if engine_type is None or not isinstance(engine_type, EngineType):
+            # Use ENGINE_BASIC as a fallback
+            self.engine_type = ENGINE_BASIC
+        else:
+            self.engine_type = engine_type
+            
         self.velocity = pygame.math.Vector2(0, 0)
         self.direction = pygame.math.Vector2(0, -1)  # Default pointing up
         self.angle = 0
@@ -31,6 +37,10 @@ class Engine:
         """Update engine state based on key presses"""
         self.thrusting = False
         
+        # Ensure engine_type is valid
+        if not isinstance(self.engine_type, EngineType):
+            self.engine_type = ENGINE_BASIC
+            
         # Rotate
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             self.angle += self.engine_type.turn_rate
@@ -92,4 +102,8 @@ class Engine:
 
     def change_engine(self, engine_type):
         """Change to a different engine type"""
-        self.engine_type = engine_type
+        if isinstance(engine_type, EngineType):
+            self.engine_type = engine_type
+        else:
+            print("Warning: Invalid engine type provided, using ENGINE_BASIC instead")
+            self.engine_type = ENGINE_BASIC

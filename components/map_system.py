@@ -220,3 +220,55 @@ class MapSystem:
                 nearest_station = station
         
         return nearest_station
+
+    def save_state(self):
+            """Save the current state of this area"""
+            self.saved_state = {
+                "asteroids": [],
+                "destroyed_asteroids": []
+            }
+            
+            # Save asteroid positions, types and health
+            for asteroid in self.asteroids:
+                self.saved_state["asteroids"].append({
+                    "position": (asteroid.position.x, asteroid.position.y),
+                    "type": asteroid.asteroid_type,
+                    "health": asteroid.health
+                })
+            
+            # Keep track of respawning asteroids
+            for respawn_data in Asteroid.respawn_queue:
+                if respawn_data["timer"] > 0:  # Still waiting to respawn
+                    self.saved_state["destroyed_asteroids"].append({
+                        "type": respawn_data["type"],
+                        "timer": respawn_data["timer"]
+                    })
+        
+    def restore_state(self):
+        """Restore the area to its saved state"""
+        if not self.saved_state:
+            return
+            
+        # Clear existing asteroids
+        for sprite in list(self.asteroids):
+            sprite.kill()
+        
+        # Restore asteroids
+        if "asteroids" in self.saved_state:
+            for asteroid_data in self.saved_state["asteroids"]:
+                asteroid = Asteroid(asteroid_type=asteroid_data["type"])
+                asteroid.position = pygame.math.Vector2(asteroid_data["position"])
+                asteroid.rect.center = asteroid_data["position"]
+                asteroid.health = asteroid_data["health"]
+                
+                self.all_sprites.add(asteroid)
+                self.asteroids.add(asteroid)
+        
+        # Restore destroyed asteroids waiting to respawn
+        if "destroyed_asteroids" in self.saved_state:
+            for destroyed_data in self.saved_state["destroyed_asteroids"]:
+                # Add to the respawn queue
+                Asteroid.respawn_queue.append({
+                    "type": destroyed_data["type"],
+                    "timer": destroyed_data["timer"]
+                })
