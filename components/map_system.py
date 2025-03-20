@@ -26,13 +26,11 @@ class Area:
             for obj in area_data["objects"]:
                 if obj["type"] == "asteroid":
                     self.spawn_asteroid(obj)
+                elif obj["type"] == "station":
+                    self.spawn_station(obj)
         # Generate random objects if needed
         elif self.type == "asteroid_field":
             self.generate_random_asteroids()
-            
-        # Add space station if needed
-        if self.id == "copernicus-outer-orbit":
-            self.add_space_station()
     
     def spawn_asteroid(self, data):
         asteroid_type = data.get("asteroid_type", "regular")
@@ -52,6 +50,12 @@ class Area:
         self.all_sprites.add(asteroid)
         self.asteroids.add(asteroid)
     
+    def spawn_station(self, data):
+        """Create a space station from data"""
+        station = SpaceStation(data)
+        self.all_sprites.add(station)
+        self.stations.add(station)
+    
     def generate_random_asteroids(self):
         for _ in range(30):
             # Random asteroid type distribution
@@ -67,16 +71,11 @@ class Area:
             self.all_sprites.add(asteroid)
             self.asteroids.add(asteroid)
     
-    def add_space_station(self):
-        # Add a space station in the middle of the area
-        station = SpaceStation(position=(WORLD_WIDTH // 2, WORLD_HEIGHT // 2))
-        self.all_sprites.add(station)
-        self.stations.add(station)
-    
     def save_state(self):
         """Save the current state of this area"""
         self.saved_state = {
-            "asteroids": []
+            "asteroids": [],
+            "stations": []
         }
         
         # Save asteroid positions, types and health
@@ -86,14 +85,25 @@ class Area:
                 "type": asteroid.asteroid_type,
                 "health": asteroid.health
             })
+        
+        # Save station data
+        for station in self.stations:
+            self.saved_state["stations"].append({
+                "position": (station.position.x, station.position.y),
+                "name": station.name,
+                "dialog": station.dialog
+            })
     
     def restore_state(self):
         """Restore the area to its saved state"""
         if not self.saved_state:
             return
             
-        # Clear existing asteroids
+        # Clear existing objects
         for sprite in list(self.asteroids):
+            sprite.kill()
+        
+        for sprite in list(self.stations):
             sprite.kill()
         
         # Restore asteroids
@@ -106,6 +116,19 @@ class Area:
                 
                 self.all_sprites.add(asteroid)
                 self.asteroids.add(asteroid)
+        
+        # Restore stations
+        if "stations" in self.saved_state:
+            for station_data in self.saved_state["stations"]:
+                station = SpaceStation({
+                    "x": station_data["position"][0],
+                    "y": station_data["position"][1],
+                    "name": station_data["name"],
+                    "dialog": station_data["dialog"]
+                })
+                
+                self.all_sprites.add(station)
+                self.stations.add(station)
 
 class MapSystem:
     def __init__(self, all_sprites, asteroids):

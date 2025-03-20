@@ -4,12 +4,21 @@
   "type": "empty",
   "connections": {
     "north": null,
-    "east": null,
+    "east": "copernicus-inner-orbit",
     "south": "copernicus-belt",
     "west": null
   },
   "background": "starfield_sparse",
-  "objects": [],
+  "objects": [
+    {
+      "type": "station",
+      "x": 1600,
+      "y": 1200,
+      "name": "Copernicus Station",
+      "dialog": "Welcome to Copernicus Station",
+      "size": 120
+    }
+  ],
   "metadata": {
     "description": "The outer orbital region beyond the Copernicus Belt. Empty space with distant stars and occasional rogue asteroids.",
     "danger_level": "low",

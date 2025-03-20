@@ -68,12 +68,11 @@ class Asteroid(pygame.sprite.Sprite):
             self.original_image = pygame.Surface((self.size, self.size), pygame.SRCALPHA)
             pygame.draw.circle(self.original_image, GREY, (self.size // 2, self.size // 2), self.size // 2)
         
-        # Set rotation properties
-        self.angle = 0
-        self.rotation_speed = random.uniform(0.1, 0.5) * random.choice([-1, 1])
+        # Set fixed random rotation angle
+        self.angle = random.randint(0, 359)
         
-        # Start with unrotated image
-        self.image = self.original_image.copy()
+        # Apply the rotation once
+        self.image = pygame.transform.rotate(self.original_image, self.angle)
         
         # Random position
         x = random.randint(50, WORLD_WIDTH - 50)
@@ -107,16 +106,8 @@ class Asteroid(pygame.sprite.Sprite):
         elif self.position.y > WORLD_HEIGHT:
             self.position.y = 0
         
-        # Update rotation
-        self.angle += self.rotation_speed
-        if self.angle >= 360:
-            self.angle -= 360
-        elif self.angle < 0:
-            self.angle += 360
-            
-        # Rotate image and update rect
-        self.image = pygame.transform.rotate(self.original_image, self.angle)
-        self.rect = self.image.get_rect(center=self.position)
+        # Update rect position without rotating again
+        self.rect.center = self.position
     
     def damage(self, amount=1):
         self.health -= amount

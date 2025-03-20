@@ -1,0 +1,69 @@
+{
+  "id": "copernicus-inner-orbit",
+  "name": "Copernicus Inner Orbit",
+  "type": "empty",
+  "connections": {
+    "north": null,
+    "east": null,
+    "south": null,
+    "west": "copernicus-outer-orbit"
+  },
+  "background": "starfield_dense",
+  "objects": [
+    {
+      "type": "asteroid",
+      "x": 1347,
+      "y": 443,
+      "size": 24,
+      "asteroid_type": "regular"
+    },
+    {
+      "type": "asteroid",
+      "x": 2803,
+      "y": 2023,
+      "size": 41,
+      "asteroid_type": "dry"
+    },
+    {
+      "type": "asteroid",
+      "x": 1035,
+      "y": 2042,
+      "size": 22,
+      "asteroid_type": "regular"
+    },
+    {
+      "type": "asteroid",
+      "x": 117,
+      "y": 167,
+      "size": 31,
+      "asteroid_type": "regular"
+    },
+    {
+      "type": "asteroid",
+      "x": 367,
+      "y": 1529,
+      "size": 34,
+      "asteroid_type": "regular"
+    },
+    {
+      "type": "asteroid",
+      "x": 2792,
+      "y": 1031,
+      "size": 46,
+      "asteroid_type": "regular"
+    },
+    {
+      "type": "asteroid",
+      "x": 257,
+      "y": 980,
+      "size": 47,
+      "asteroid_type": "regular"
+    }
+  ],
+  "metadata": {
+    "description": "A new map area.",
+    "danger_level": "low",
+    "resource_richness": "low",
+    "discovery_date": "2200"
+  }
+}

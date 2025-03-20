@@ -1,0 +1,32 @@
+{
+    "root": {
+        "npc_text": "Welcome to Copernicus Station, a mining and research facility. How can I assist you today?",
+        "options": [
+            {
+                "text": "I'd like to speak with someone about mining work.",
+                "next_node": "mining_info",
+                "triggers": {}
+            },
+            {
+                "text": "Just passing through.",
+                "next_node": "end",
+                "triggers": {}
+            }
+        ]
+    },
+    "mining_info": {
+        "npc_text": "Our mining operations are coordinated by the Mining Foreman. You can find him in the operations center.",
+        "options": [
+            {
+                "text": "I'll go speak with him.",
+                "next_node": "end",
+                "triggers": {"StationInfoMining": true}
+            },
+            {
+                "text": "Actually, I'll come back later.",
+                "next_node": "end",
+                "triggers": {}
+            }
+        ]
+    }
+}

@@ -1,0 +1,3 @@
+Make high-grade ore rarer, OR ensure when refined it has a common resource to give out
+nsure the component resources of Ore are around the same value as the ore (some leeway allowed)
+Add rare metals

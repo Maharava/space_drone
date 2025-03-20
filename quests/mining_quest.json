@@ -1,0 +1,24 @@
+{
+    "id": "mining_quest",
+    "name": "Mining Task",
+    "description": "Collect 5 rare ore for the mining foreman at Copernicus Station.",
+    "initial_flags": {
+        "MiningQuestOffered": false,
+        "MiningQuestAccepted": false,
+        "OreCollected": 0
+    },
+    "objectives": [
+        {
+            "id": "collect_ore",
+            "description": "Collect 5 rare ore",
+            "completion_flag": "OreCollected",
+            "completion_value": 5
+        }
+    ],
+    "rewards": {
+        "silver": 50,
+        "flags": {
+            "MiningQuestCompleted": true
+        }
+    }
+}

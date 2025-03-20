@@ -1,0 +1,87 @@
+{
+    "node_conditions": {
+        "check_progress": {
+            "MiningQuestAccepted": true,
+            "MiningQuestCompleted": false
+        },
+        "post_completion": {
+            "MiningQuestCompleted": true
+        }
+    },
+    "root": {
+        "npc_text": "Hello, traveler! Are you interested in earning some ore?",
+        "options": [
+            {
+                "text": "Tell me more.",
+                "next_node": "details",
+                "triggers": {"MiningQuestOffered": true}
+            },
+            {
+                "text": "Not interested.",
+                "next_node": "end",
+                "triggers": {}
+            }
+        ]
+    },
+    "details": {
+        "npc_text": "Great! Here's what I need you to do - gather 5 rare ore!",
+        "options": [
+            {
+                "text": "I'll do it.",
+                "next_node": "accepted",
+                "triggers": {"MiningQuestAccepted": true}
+            },
+            {
+                "text": "On second thought, no thanks.",
+                "next_node": "end",
+                "triggers": {"MiningQuestOffered": false}
+            }
+        ]
+    },
+    "accepted": {
+        "npc_text": "Excellent! Bring me the ore when you have enough.",
+        "options": [
+            {
+                "text": "I'll be back with the ore.",
+                "next_node": "end",
+                "triggers": {}
+            }
+        ]
+    },
+    "check_progress": {
+        "npc_text": "Have you collected the ore I requested?",
+        "options": [
+            {
+                "text": "Yes, here it is.",
+                "next_node": "completion",
+                "condition": {"OreCollected": 5},
+                "triggers": {"MiningQuestCompleted": true}
+            },
+            {
+                "text": "Not yet, I'm still working on it.",
+                "next_node": "end",
+                "triggers": {}
+            }
+        ]
+    },
+    "completion": {
+        "npc_text": "Excellent work! Here's your reward of 50 silver pieces.",
+        "options": [
+            {
+                "text": "Thank you.",
+                "next_node": "end",
+                "triggers": {}
+            }
+        ]
+    },
+    "post_completion": {
+        "npc_text": "Thanks again for your help with the ore. Let me know if you're looking for more work in the future.",
+        "options": [
+            {
+                "text": "I'll keep that in mind.",
+                "next_node": "end",
+                "triggers": {}
+            }
+        ]
+    }
+}

@@ -139,11 +139,12 @@
 
 2. **Child Node**:
    - Condition: `MiningQuestOffered = True`
-   - NPC: "Great! Here's what I need you to do..."
+   - NPC: "Great! Here's what I need you to do - gather 5 rare ore!"
    - Player Options:
-     - "I'll do it." (Sets `MiningQuestAccepted = True`, adds `OreDrill` to inventory)
+     - "I'll do it." (Sets `MiningQuestAccepted = True`)
      - "On second thought, no thanks." (Resets `MiningQuestOffered = False`)
 
 3. **Follow-up Interaction**:
    - NPC: "Have you completed the mining task?"
-   - Responses depend on the flag `MiningQuestAccepted` and item presence.
+   - Responses depend on the flag `MiningQuestAccepted` and if the player has 5x rare ore presence.
+   - rewards 50 silver

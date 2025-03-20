@@ -1,0 +1,144 @@
+### **Item Refining System Overview**
+
+Refiners, located in specific stations, allow players to transform raw materials into more advanced or specialized items. These refiners are central to crafting and resource progression, enabling players to manage and enhance their inventory effectively. The interaction with refiners is entirely station-based.
+
+---
+
+### **I. Refining Interaction Flow**
+
+#### **1. Identifying Refiners**
+- Some stations house refiners, but not all. Interacting with a station with a refiner will present the refining option.
+- A distinct marker or descriptive element should clearly indicate refiner availability within the station interface.
+
+#### **2. Player Interaction**
+1. **Accessing the Refiner**:
+   - When interacting with a station that contains a refiner, an option to open the refining interface will be displayed (e.g., a button labeled "Access Refiner").
+2. **Launching the Refining UI**:
+   - Selecting the refining option opens a new interface where players can:
+     - View their inventory for refiner-compatible materials.
+     - Examine available recipes and identify what can be crafted based on current inventory.
+
+---
+
+### **II. Refining UI Structure**
+
+#### **1. Inventory Display**
+- A clear section of the UI shows all materials in the player’s inventory that can be used for refining. 
+
+Example:
+```
+Materials Available:
+- Low Grade Ore (x10)
+- High Grade Ore (x7)
+- Raw Silver (x4)
+- Crystals (x3)
+- Alloys (x2)
+- Metal (x8)
+- Gold (x1)
+```
+
+#### **2. Recipe List**
+- Each recipe in the UI includes:
+  - **Name**: What the recipe produces (e.g., Metal, Alloys).
+  - **Inputs Required**: Materials and quantities needed.
+  - **Output(s)**: The resulting item(s) from the recipe.
+  - **Craft Button**: Enabled only when the player possesses enough inputs.
+
+Example:
+```
+Recipes:
+- Metal: Refine 1 Low Grade Ore.
+- Alloys: Refine 1 High Grade Ore + 2 Low Grade Ore.
+- Silver: Refine 1 Raw Silver.
+- Electronics: Refine 1 Alloy + 1 Metal + 1 Gold.
+- Memory Crystals: Refine 1 Crystal + 1 Gold.
+```
+
+#### **3. Crafting Feedback**
+- On successful crafting:
+  - Inputs are removed from inventory.
+  - Outputs are added to inventory.
+  - A message confirms success (e.g., "You refined 3 Alloys!").
+- On failure:
+  - A descriptive message explains why the crafting cannot proceed (e.g., "Insufficient Crystals to craft Memory Crystals.").
+
+---
+
+### **III. Recipes and Outputs**
+
+#### **1. Recipe Structure**
+- Recipes are structured with the following attributes:
+  - **Inputs**: The materials required, including quantities.
+  - **Outputs**: The crafted item(s) and their quantities.
+  - **Randomized Outputs (if applicable)**: Some recipes yield random results, introducing variability and excitement.
+  - **Refining Stations Only**: Recipes are accessible solely through interaction with stations housing refiners.
+
+#### **2. Recipe Examples**
+| **Recipe Name**       | **Inputs**                          | **Output**                | **Randomization**       |
+|-----------------------|-------------------------------------|--------------------------|-------------------------|
+| Metal                 | 1x Low Grade Ore                   | 1x Metal                 | None                    |
+| Alloys                | 1x High Grade Ore, 2x Low Grade Ore | 1x Alloy                 | None                    |
+| Silver                | 1x Raw Silver                      | 1x Silver                | None                    |
+| Electronics           | 1x Alloy, 1x Metal, 1x Gold        | 1x Electronics           | None                    |
+| Memory Crystals       | 1x Crystal, 1x Gold                | 1x Memory Crystal        | None                    |
+| Random Metals         | 1x High Grade Ore                  | Randomized (see below)   | Gold, Platinum, Other Rare Metals |
+
+#### **3. Randomized Outputs for High Grade Ore**
+- Refining High Grade Ore produces a mix of rare metals, such as:
+  - **Gold**: A highly valued crafting material and input for advanced recipes.
+  - **Platinum**: Another valuable output with rare applications.
+  - **Titanium**: Known for its use in advanced crafting or trading.
+  - **Palladium**: A rarer material with specialized uses.
+- Outputs may vary in quantity and type for added variability:
+  - Example: Refining 1 High Grade Ore could yield 1 Gold, 1 Platinum, or 1 Gold and 1 Titanium.
+
+---
+
+### **IV. Implementation Flow**
+
+#### **1. Station Interaction**
+1. **Accessing the Refiner**:
+   - Stations with refiners display a refining option when interacted with.
+   - Selecting this option opens the refining interface.
+2. **UI Activation**:
+   - The UI dynamically checks the player’s inventory and displays only the recipes that can currently be crafted.
+
+#### **2. Inventory Check**
+- When the player selects a recipe:
+  - The system verifies whether the required materials are present in the inventory.
+  - Recipes with insufficient materials remain grayed out or inaccessible.
+
+#### **3. Crafting Execution**
+- Upon crafting:
+  - Input materials are deducted from inventory.
+  - Crafted items are added to inventory.
+  - The refining UI updates dynamically to reflect changes in inventory and available recipes.
+
+#### **4. Randomization Handling**
+- Randomized recipes (e.g., refining High Grade Ore):
+  - The system generates outputs based on predefined probabilities.
+  - For example:
+    - 60% chance to yield Gold.
+    - 25% chance to yield Platinum.
+    - 15% chance to yield Titanium or other rare metals.
+
+---
+
+### **V. Design Considerations**
+
+#### **1. Recipe Variety**
+- Include a mix of predictable and randomized recipes to cater to different player strategies (reliable crafting vs. resource gambling).
+
+#### **2. UI Clarity**
+- Clearly display randomized recipes as "Chance-based" and provide a tooltip or explanation of potential outputs.
+
+#### **3. Progression**
+- Balance recipe inputs and outputs to align with player progression:
+  - Early recipes focus on common materials (e.g., Low Grade Ore → Metal).
+  - Advanced recipes require rarer resources like Gold and Platinum.
+
+#### **4. Inventory Feedback**
+- Ensure the UI updates instantly after crafting to reflect inventory changes and newly unlocked recipes.
+
+#### **5. Integration**
+- Ensure the game editor can handle creating and editing recipes.

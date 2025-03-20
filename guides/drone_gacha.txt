@@ -1,0 +1,111 @@
+# **Drone System Design Document**
+
+This document outlines the design and evolution of the drone system in our game. Drones are not only automated units but also represent a collection that ranges from common, utilitarian workhorses to rare, unique units with distinctive in-lore AI hints. These drones play roles both in combat and in utility, and their evolution and resource management contribute significantly to gameplay depth.
+
+---
+
+## **1. Drone Categories**
+
+### **Common Drones (Regular Drones)**
+- **Purpose:**  
+  - Serve as basic, easily built units that perform core tasks (combat, mining, repair, etc.) without added personality.
+  - Act as reliable workhorses for day-to-day operations.
+- **Characteristics:**  
+  - Straightforward functionality with flat upgrade paths (e.g., better armor or improved efficiency).
+  - Some common drones may have the potential to evolve into rare drones through upgrade pathways.
+  - Lack any substantial AI dialogue or personality.
+
+### **Rare Drones**
+- **Purpose:**  
+  - Provide enhanced utility and tactical variation beyond the common units.
+  - Offer some level of interactive feedback (basic interactions, alerts, or simple remarks) without a full dialogue tree.
+- **Characteristics:**  
+  - Possess specialized or situational abilities along with randomized secondary stats to encourage experimentation.
+  - Some rare drones can evolve from common drones and, in turn, may evolve into unique drones.
+  - Basic interactions might include limited messaging in the drone hub (e.g., brief greetings or status updates) that hint at a developing personality.
+
+### **Unique Drones**
+- **Purpose:**  
+  - Represent the prized units in the collection with distinct artificial personalities.
+  - Contribute unique abilities that impact quests, events, and other gameplay systems.
+- **Characteristics:**  
+  - Have richer, in-lore AI with scripted personality snippets and specialized non-combat functions.
+  - Their evolution is supported by external resources rather than being locked behind narrative moments. Quests and exploration can provide the necessary resources or directions for evolving these drones.
+  - Unique drones secondary stats can be re-rolled, reflecting their status as being unique. Once unlocked, the player may never again get the same unique drone, even if they disassemble it – they are unique
+
+---
+
+## **2. Acquisition and the Gacha Mechanic**
+
+### **Gacha Mechanic Overview**
+- **Approach:**  
+  - The gacha system is the primary way of acquiring new drones through resource inputs.
+  - It randomly yields drones from the spectrum of common, rare, or unique, based on the system’s design probabilities.
+- **Design Guideline:**  
+  - Keep the process straightforward, avoiding an overt narrative-driven reveal.
+  - Focus on strategic balance and long-term collection value rather than big cinematic moments.
+
+### **Handling Duplicates**
+- **Refinement and Salvage:**  
+  - Duplicate drones can be refined or disassembled for component resources. This process yields materials required for upgrades or future gacha pulls.
+  - When refining a duplicate, there will be a chance to receive rare upgrade materials—particularly valuable when the duplicate is of a higher rarity.
+- **Enhanced Returns for Rare Duplicates:**  
+  - Rare duplicates offer a greater chance of producing additional or rarer upgrade materials, making them valuable even if the player already owns that drone.
+- **Utility:**  
+  - Duplicates, rather than just being an inventory nuisance, serve as a resource input—contributing to a more robust and interconnected upgrade system.
+
+---
+
+## **3. Drone Upgrades and Evolution**
+
+### **Basic Upgrades (Flat Upgrades)**
+- **Universal Application:**  
+  - All drones, regardless of rarity, can receive straightforward enhancements such as improved armor, faster operation, or better efficiency.
+  - These upgrades are designed to maintain the viability of every drone in everyday operations.
+
+### **Advanced Upgrades (Drone Evolution)**
+- **Evolution Pathways:**  
+  - Some common drones have the potential to evolve into rare drones, and some rare drones can further evolve into unique drones.
+- **Mechanics of Evolution:**  
+  - Advanced evolutions will not be gated by narrative moments; instead, quests and in-game activities provide resources or direct players toward the methods needed for evolution.
+  - For unique drones, evolution might require rare inputs such as alien artifacts, prototype technology, or specific resource combinations.
+  - The evolution process not only enhances performance with new abilities or strategic synergies but also deepens the drone's artificial personality—reflected in subtle text interactions within the hub.
+
+---
+
+## **4. Drone Abilities and Artificial Personality**
+
+### **Non-Combat, Situational, and Synergy Abilities**
+- **Core Concept:**  
+  - Drones can offer specialized functions that influence encounters beyond raw combat stats.  
+  - Some may boost resource collection efficiency, provide situational defense buffs, or trigger synergy bonuses with other systems.
+- **Randomized Secondary Stats:**  
+  - On acquisition, some rare and unique drones may feature randomized secondary stats. This introduces variability that rewards continued collection and experimentation.
+- **Synergy with Carrier Systems:**  
+  - Certain drones may unlock additional tactical benefits when used alongside specific carrier functions or in combination with other units.
+
+### **Artificial Dialogue and Interactions**
+- **Rare Drones:**  
+  - Include basic interactions in the drone hub—simple messages that hint at a developing AI without complex dialogue trees.
+- **Unique Drones:**  
+  - Feature scripted lines to reinforce their distinct character, but maintain an artificial tone that reminds players these units are ultimately machines.
+- **In-Game Hub:**  
+  - The carrier’s drone hub displays each unit’s status, backstory, and any triggered interactions or evolution cues.
+- **Resource and Quest Integration:**  
+  - Quests and exploration opportunities will provide or highlight the resources required for evolving unique drones, ensuring players do not miss these pathways.
+
+---
+
+## **5. Summary and Design Goals**
+
+- **Diverse Collection:**  
+  - Establish a meaningful spectrum of drones—from common workhorses to rare and unique units with specialized abilities and an artificial personality.
+- **Robust Upgrade Pathways:**  
+  - Ensure that every drone can be upgraded. Basic upgrades improve overall utility, while evolution mechanisms add strategic depth and unique abilities for higher rarity drones.
+- **Duplicate Utility:**  
+  - Implement a system where duplicate drone pulls are not wasteful but serve as components for further advancement and valuable resource acquisition.
+- **Mechanics-Driven Evolution:**  
+  - Integrate quest rewards and resource gathering into the evolution process, providing clear, accessible methods for players to enhance their drones without locking progress behind narrative choices.
+- **Artificial yet Impactful Dialogue:**  
+  - Equip unique drones with artificial, scripted interactions—enough to give character without creating barriers to replacement or upgrades.
+
