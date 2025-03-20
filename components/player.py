@@ -1,9 +1,9 @@
 import pygame
 import math
 from game_config import *
-from components.engine import Engine, ENGINE_BASIC
-from components.weapon import create_weapon, LASER_BASIC
-from components.hangar import Hangar, HANGAR_BASIC
+from components.engine import Engine
+from components.weapon import create_weapon
+from components.hangar import Hangar
 from components.module import *
 
 class PlayerStats:
@@ -46,9 +46,8 @@ class Player(pygame.sprite.Sprite):
         }
         
         # Required components for gameplay
-        self.engine = Engine(ENGINE_BASIC)
-        self.current_weapon = LASER_BASIC
-        self.hangar = Hangar(HANGAR_BASIC)
+        self.engine = Engine(self.modules["engine"])
+        self.hangar = Hangar(self.modules["hangar"])
         
         # Update stats based on modules
         self.update_stats_from_modules()
@@ -161,17 +160,24 @@ class Player(pygame.sprite.Sprite):
     
     def shoot(self):
         """Create a weapon projectile if enough energy"""
-        # Get weapon stats from module or fallback to legacy
-        energy_cost = self.modules["weapon"].stats.get("energy_cost", self.current_weapon.energy_cost)
+        # Get weapon stats from module
+        weapon_module = self.modules["weapon"]
+        if not weapon_module:
+            return None
+            
+        energy_cost = weapon_module.stats.get("energy_cost", 1)
         
         if self.stats.energy >= energy_cost:
             self.stats.energy -= energy_cost
-            return create_weapon(self.current_weapon, self.position, self.engine.direction)
+            return create_weapon(weapon_module, self.position, self.engine.direction)
         return None
     
     def get_weapon_cooldown(self):
         """Return cooldown time for current weapon"""
-        return self.modules["weapon"].stats.get("cooldown", self.current_weapon.cooldown)
+        weapon_module = self.modules["weapon"]
+        if not weapon_module:
+            return 300  # Default cooldown
+        return weapon_module.stats.get("cooldown", 300)
     
     def install_module(self, slot, module):
         """Install a module in the specified slot"""
@@ -179,13 +185,11 @@ class Player(pygame.sprite.Sprite):
             self.modules[slot] = module
             self.update_stats_from_modules()
             
-            # Update legacy components
+            # Update engine and hangar components
             if slot == "engine":
-                engine_type = self.modules[slot].stats.get("engine_type", ENGINE_BASIC)
-                self.engine.change_engine(engine_type)
+                self.engine.change_engine(module)
             elif slot == "hangar":
-                hangar_type = self.modules[slot].stats.get("hangar_type", HANGAR_BASIC)
-                self.hangar.change_hangar(hangar_type)
+                self.hangar.change_hangar(module)
             
             return True
         return False
@@ -239,25 +243,3 @@ class Player(pygame.sprite.Sprite):
         
         # Check if destroyed
         return self.stats.hull_strength <= 0
-    
-    def sync_modules_with_components(self):
-        """Sync module system with legacy components"""
-        # Update engine component
-        if self.modules["engine"]:
-            engine_stats = self.modules["engine"].stats
-            engine_type = ENGINE_BASIC
-            # Set engine parameters from module stats
-            engine_type.max_speed = engine_stats.get("max_speed", 5.0)
-            engine_type.acceleration = engine_stats.get("acceleration", 0.2)
-            engine_type.turn_rate = engine_stats.get("turn_rate", 3.0)
-            engine_type.energy_usage = engine_stats.get("energy_usage", 1)
-            self.engine.change_engine(engine_type)
-        
-        # Update weapon component
-        if self.modules["weapon"]:
-            weapon_stats = self.modules["weapon"].stats
-            # Apply weapon stats to current_weapon
-            self.current_weapon.damage = weapon_stats.get("damage", 1)
-            self.current_weapon.speed = weapon_stats.get("speed", 10)
-            self.current_weapon.cooldown = weapon_stats.get("cooldown", 300)
-            self.current_weapon.energy_cost = weapon_stats.get("energy_cost", 1)
