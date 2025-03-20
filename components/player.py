@@ -1,8 +1,8 @@
 import pygame
 import math
 from game_config import *
-from engine import Engine, ENGINE_BASIC
-from weapon import create_weapon, LASER_BASIC
+from components.engine import Engine, ENGINE_BASIC
+from components.weapon import create_weapon, LASER_BASIC
 
 class PlayerStats:
     """Class to store player stats that can be upgraded"""

@@ -51,17 +51,8 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        # Handle space key for continuous firing
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_SPACE] and game_state == GAME_RUNNING:
-            current_time = pygame.time.get_ticks()
-            if current_time - last_shot_time > player.get_weapon_cooldown():
-                projectile = player.shoot()
-                if projectile:
-                    all_sprites.add(projectile)
-                    lasers.add(projectile)
-                    last_shot_time = current_time
-            elif event.key == pygame.K_i and game_state == GAME_RUNNING:
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_i and game_state == GAME_RUNNING:
                 # Open inventory
                 game_state = INVENTORY_OPEN
             elif event.key == pygame.K_ESCAPE and game_state == INVENTORY_OPEN:
@@ -69,7 +60,20 @@ while running:
                 game_state = GAME_RUNNING
         elif event.type == pygame.MOUSEBUTTONDOWN and game_state == INVENTORY_OPEN:
             # Handle inventory clicks
-            inventory_ui.handle_click(event.pos)
+            result = inventory_ui.handle_click(event.pos)
+            if result == "close":
+                game_state = GAME_RUNNING
+    
+    # Handle space key for continuous firing
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_SPACE] and game_state == GAME_RUNNING:
+        current_time = pygame.time.get_ticks()
+        if current_time - last_shot_time > player.get_weapon_cooldown():
+            projectile = player.shoot()
+            if projectile:
+                all_sprites.add(projectile)
+                lasers.add(projectile)
+                last_shot_time = current_time
     
     # Update
     all_sprites.update(game_state)
@@ -80,7 +84,7 @@ while running:
     if game_state == INVENTORY_OPEN:
         inventory_ui.update()
     
-            # Check for laser hits on asteroids (only when game running)
+    # Check for laser hits on asteroids (only when game running)
     if game_state == GAME_RUNNING:
         hits = pygame.sprite.groupcollide(lasers, asteroids, True, False)
         for projectile, asteroid_list in hits.items():

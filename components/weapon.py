@@ -18,18 +18,18 @@ LASER_RAPID = WeaponType("Rapid Laser", 0.5, 12, 150, GREEN, (3, 7), 1)
 LASER_HEAVY = WeaponType("Heavy Laser", 3, 8, 500, BLUE, (8, 8), 3)
 MISSILE = WeaponType("Missile", 5, 6, 800, YELLOW, (8, 12), 5)
 
-class Weapon:
+class Weapon(pygame.sprite.Sprite):
     """Base class for all weapon projectiles"""
     def __init__(self, position, direction, weapon_type):
+        super().__init__()
         self.position = pygame.math.Vector2(position)
         self.direction = pygame.math.Vector2(direction)
         self.weapon_type = weapon_type
         
         # Create sprite
-        self.sprite = pygame.sprite.Sprite()
-        self.sprite.image = pygame.Surface(weapon_type.size)
-        self.sprite.image.fill(weapon_type.color)
-        self.sprite.rect = self.sprite.image.get_rect(center=position)
+        self.image = pygame.Surface(weapon_type.size)
+        self.image.fill(weapon_type.color)
+        self.rect = self.image.get_rect(center=position)
     
     def update(self, game_state):
         """Update position and check bounds"""
@@ -38,23 +38,14 @@ class Weapon:
             return
         
         self.position += self.direction * self.weapon_type.speed
-        self.sprite.rect.center = self.position
+        self.rect.center = self.position
         
         # Remove if off world
         if (self.position.x < 0 or self.position.x > WORLD_WIDTH or 
             self.position.y < 0 or self.position.y > WORLD_HEIGHT):
-            self.sprite.kill()
-    
-    def get_sprite(self):
-        """Return the sprite for rendering"""
-        return self.sprite
-    
-    def get_damage(self):
-        """Return the damage this weapon deals"""
-        return self.weapon_type.damage
+            self.kill()
 
 # Factory function to create weapons
 def create_weapon(weapon_type, position, direction):
     """Create a weapon of the specified type"""
-    weapon = Weapon(position, direction, weapon_type)
-    return weapon.get_sprite()
+    return Weapon(position, direction, weapon_type)
