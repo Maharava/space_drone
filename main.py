@@ -1,6 +1,5 @@
 import pygame
 import sys
-import os
 import random
 from game_config import *
 from components.player import Player
@@ -17,14 +16,11 @@ from ui.jump_ui import JumpUI
 from ui.conversation_ui import ConversationUI
 from ui.interact_ui import InteractUI
 from ui.merchant_ui import MerchantUI
-from utils import load_image
+from ui.jobs_board_ui import JobsBoardUI
+from ui.text_dialog_ui import TextDialogUI
+from ui.npc_dialogue_ui import NPCDialogueUI
 from quests.quest_manager import QuestManager
 from game_state import *
-# Use either of these imports:
-from quests import QuestManager  # Import from quests package
-
-
-
 
 class Game:
     def __init__(self):
@@ -34,16 +30,6 @@ class Game:
         # Screen setup
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("Space Mining Game")
-        
-        # Game states
-        self.states = {
-            "running": RunningState(self),
-            "inventory": InventoryState(self),
-            "hangar": HangarState(self),
-            "conversation": ConversationState(self),
-            "merchant": MerchantState(self)
-        }
-        self.current_state = self.states["running"]
         
         # Create sprite groups
         self.all_sprites = pygame.sprite.Group()
@@ -61,6 +47,10 @@ class Game:
         # Create map system
         self.map_system = MapSystem(self.all_sprites, self.asteroids, self)
         
+        # Create quest manager (this needs to be created before UI elements)
+        self.quest_manager = QuestManager(self)
+        self.player.game = self
+        
         # Create UI elements
         self.inventory_ui = InventoryUI(self.player)
         self.hangar_ui = HangarUI(self.player)
@@ -68,9 +58,22 @@ class Game:
         self.conversation_ui = ConversationUI()
         self.interact_ui = InteractUI()
         self.merchant_ui = MerchantUI(self.player)
+        self.jobs_board_ui = JobsBoardUI(self)
+        self.text_dialog_ui = TextDialogUI("Information")
+        self.npc_dialogue_ui = NPCDialogueUI()
         
-        self.quest_manager = QuestManager(self)
-        self.player.game = self
+        # Game states
+        self.states = {
+            "running": RunningState(self),
+            "inventory": InventoryState(self),
+            "hangar": HangarState(self),
+            "conversation": ConversationState(self),
+            "merchant": MerchantState(self),
+            "jobs": JobsBoardState(self),
+            "text_dialog": TextDialogState(self),
+            "npc_dialogue": NPCDialogueState(self)
+        }
+        self.current_state = self.states["running"]
         
         # Load initial area - Copernicus Belt
         if not self.map_system.change_area("copernicus-belt")[0]:
@@ -98,6 +101,12 @@ class Game:
             self.current_state.exit()
             self.current_state = self.states[state_name]
             self.current_state.enter()
+    
+    def show_text_dialog(self, title, text):
+        """Show a text dialog with the given title and text"""
+        self.text_dialog_ui.title = title
+        self.text_dialog_ui.set_text(text)
+        self.change_state("text_dialog")
     
     def handle_player_shooting(self):
         """Handle player shooting weapons"""

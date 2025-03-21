@@ -4,7 +4,7 @@ from ui.base_ui import BaseUI
 
 class ConversationUI(BaseUI):
     def __init__(self):
-        # Use different dimensions for conversation UI (wider and shorter)
+        # Wider and shorter UI for conversations
         super().__init__(1/6, 2/3, 2/3, 1/4)
         
         # Speaker and dialog text
@@ -12,8 +12,15 @@ class ConversationUI(BaseUI):
         self.dialog = ""
         self.options = []
         
-        # Barter button
-        self.barter_button = pygame.Rect(self.bg_rect.centerx - 50, self.bg_rect.bottom - 40, 100, 30)
+        # Barter button (right side)
+        self.barter_button = pygame.Rect(self.bg_rect.right - 120, self.bg_rect.bottom - 40, 100, 30)
+        
+        # Jobs Board button (left side)
+        self.jobs_button = pygame.Rect(self.bg_rect.x + 20, self.bg_rect.bottom - 40, 100, 30)
+        
+        # Add buttons to clickable elements
+        self.add_clickable("barter", self.barter_button)
+        self.add_clickable("jobs", self.jobs_button)
     
     def set_dialog(self, speaker, text, options=None):
         self.speaker = speaker
@@ -31,6 +38,10 @@ class ConversationUI(BaseUI):
         # Draw close button
         self.draw_close_button(screen)
         
+        # Calculate dialog area
+        dialog_area_height = self.bg_rect.height - 140  # Leave room for speaker and buttons
+        max_y_offset = self.bg_rect.y + 50 + dialog_area_height
+        
         # Draw dialog text (with word wrap)
         words = self.dialog.split(' ')
         line = ""
@@ -45,15 +56,21 @@ class ConversationUI(BaseUI):
                 screen.blit(text_surf, (self.bg_rect.x + 20, self.bg_rect.y + y_offset))
                 y_offset += 25
                 line = word + " "
+                
+                # Check if we're running out of space
+                if self.bg_rect.y + y_offset > max_y_offset:
+                    text_surf = self.font.render("...", True, WHITE)
+                    screen.blit(text_surf, (self.bg_rect.x + 20, self.bg_rect.y + y_offset))
+                    break
         
-        if line:
+        if line and self.bg_rect.y + y_offset <= max_y_offset:
             text_surf = self.font.render(line, True, WHITE)
             screen.blit(text_surf, (self.bg_rect.x + 20, self.bg_rect.y + y_offset))
             y_offset += 30
         
         # Draw options
         for i, option in enumerate(self.options):
-            if 'text' in option:
+            if 'text' in option and self.bg_rect.y + y_offset <= max_y_offset:
                 option_text = self.font.render(f"{i+1}. {option['text']}", True, WHITE)
                 screen.blit(option_text, (self.bg_rect.x + 40, self.bg_rect.y + y_offset))
                 y_offset += 30
@@ -65,6 +82,14 @@ class ConversationUI(BaseUI):
         barter_text = self.font.render("Barter", True, WHITE)
         screen.blit(barter_text, (self.barter_button.centerx - barter_text.get_width() // 2,
                                  self.barter_button.centery - barter_text.get_height() // 2))
+        
+        # Draw jobs board button
+        pygame.draw.rect(screen, GREEN, self.jobs_button)
+        pygame.draw.rect(screen, WHITE, self.jobs_button, 1)
+        
+        jobs_text = self.font.render("Jobs", True, WHITE)
+        screen.blit(jobs_text, (self.jobs_button.centerx - jobs_text.get_width() // 2,
+                               self.jobs_button.centery - jobs_text.get_height() // 2))
     
     def handle_click(self, pos):
         # Check if close button clicked
@@ -75,4 +100,8 @@ class ConversationUI(BaseUI):
         if self.barter_button.collidepoint(pos):
             return "barter"
             
-        return False
+        # Check if jobs button clicked
+        if self.jobs_button.collidepoint(pos):
+            return "jobs"
+            
+        return None

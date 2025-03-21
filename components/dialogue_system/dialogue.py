@@ -46,14 +46,16 @@ class DialogueSystem:
                 
                 if all_conditions_met:
                     self.current_node = node_name
-                    break
+                    print(f"Selected dialogue node: {node_name} based on conditions")
+                    return
     
     def get_current_node_text(self):
         """Get the NPC text for the current node"""
         if not self.current_dialogue or not self.current_node:
             return None
             
-        return self.current_dialogue.get(self.current_node, {}).get("npc_text", "")
+        node_text = self.current_dialogue.get(self.current_node, {}).get("npc_text", "")
+        return node_text
     
     def get_available_options(self):
         """Get available player options for the current node"""
@@ -74,7 +76,7 @@ class DialogueSystem:
                 if "condition" in display_option:
                     del display_option["condition"]
                 available_options.append(display_option)
-                
+        
         return available_options
     
     def select_option(self, option_index):
@@ -96,6 +98,9 @@ class DialogueSystem:
             # Move to the next node or end dialogue
             next_node = selected_option.get("next_node")
             if next_node == "end":
+                # Save any deferred flags before ending dialogue
+                self.flags.save_flags()
+                
                 self.current_dialogue = None
                 self.current_node = None
                 return False  # Dialogue ended

@@ -3,15 +3,12 @@ Quest manager for the game, handling dialogue and quest systems.
 """
 
 import os
-# Update imports to use components instead of src
 from components.dialogue_system.flags import FlagSystem
 from components.dialogue_system.quests import QuestSystem
 from components.dialogue_system.integration import add_dialogue_to_station
 
 class QuestManager:
-    """
-    Manages quests and dialogue for the game.
-    """
+    """Manages quests and dialogue for the game."""
     def __init__(self, game):
         """Initialize the quest manager."""
         self.game = game
@@ -63,6 +60,41 @@ class QuestManager:
         
         return False
     
+    def start_direct_npc_dialogue(self, npc_name):
+        """Start dialogue with a specific NPC - handles state setup"""
+        # Find the current station
+        station = self.game.map_system.get_nearest_station(self.game.player.position)
+        if not station:
+            print("No station nearby")
+            return False
+            
+        # Make sure station has dialogue
+        if not hasattr(station, '_dialogue_handler'):
+            dialogue_handler = self.add_dialogue_to_station(station)
+            if not dialogue_handler:
+                print(f"Could not add dialogue to {station.name}")
+                return False
+        
+        # Get the NPC
+        npc = station._dialogue_handler.get_npc(npc_name)
+        if not npc:
+            print(f"NPC '{npc_name}' not found")
+            return False
+        
+        # Set current state and start dialogue
+        self.current_station = station
+        self.current_dialogue = station._dialogue_handler
+        
+        # Make sure we save any pending flag changes before starting dialogue
+        self.flags.save_flags()
+        
+        # Start NPC dialogue
+        if npc.start_conversation():
+            self.current_npc = npc
+            return True
+            
+        return False
+    
     def get_current_text(self):
         """Get the current dialogue text."""
         if not self.current_dialogue:
@@ -100,27 +132,31 @@ class QuestManager:
                 # Add reward to player
                 self.game.player.stats.silver += 50
                 print("Mining quest completed! Rewarded 50 silver.")
+                # Make sure we save this completion state
+                self.flags.save_flags()
                 
             return result
         
-        # Check if this is an NPC selection
+        # Handle station dialogue
         options = self.current_dialogue.get_dialogue_options()
         if option_index >= len(options):
             return False
         
         option = options[option_index]
-        
-        # Check if talking about Mining Foreman
         option_text = option.get('text', '').lower()
-        if "mining foreman" in option_text and "StationInfoMining" in self.flags.flags:
-            # Talk to Mining Foreman directly
-            npc = self.current_dialogue.get_npc("Mining Foreman")
-            
-            if npc and npc.start_conversation():
-                self.current_npc = npc
-                return True
         
-        # Otherwise, just select the option
+        # Check if this is about the Mining Foreman
+        if ("mining" in option_text and "foreman" in option_text) or "foreman" in option_text:
+            # First select the option to progress dialogue
+            self.current_dialogue.select_option(option_index)
+            
+            # Then try to start Mining Foreman dialogue
+            if self.start_direct_npc_dialogue("Mining Foreman"):
+                return True
+            
+            return False
+        
+        # Standard option selection
         result = self.current_dialogue.select_option(option_index)
         
         # Check if dialogue ended
@@ -139,6 +175,11 @@ class QuestManager:
                 # Increment count
                 self.flags.set_flag("OreCollected", current_count + 1)
                 print(f"Mining quest progress: {current_count + 1}/5 Rare Ore collected")
+                
+                # Only save periodically to avoid lag
+                if (current_count + 1) % 5 == 0 or (current_count + 1) >= 5:
+                    self.flags.save_flags()
+                    
                 return True
         
         return False

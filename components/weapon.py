@@ -1,4 +1,5 @@
 import pygame
+import math
 from game_config import *
 
 class Weapon(pygame.sprite.Sprite):
@@ -27,9 +28,16 @@ class Weapon(pygame.sprite.Sprite):
         size = self.get_module_stat('size', (5, 5))
         color = self.get_module_stat('color', RED)
         
-        # Create sprite
-        self.image = pygame.Surface(size)
-        self.image.fill(color)
+        # Create base sprite
+        self.original_image = pygame.Surface(size)
+        self.original_image.fill(color)
+        
+        # Calculate angle from direction vector (degrees)
+        # Convert from direction vector to angle (0° is up, 90° is right)
+        angle = math.degrees(math.atan2(-self.direction.x, -self.direction.y))
+        
+        # Rotate the image
+        self.image = pygame.transform.rotate(self.original_image, angle)
         self.rect = self.image.get_rect(center=position)
         self.active = True
     

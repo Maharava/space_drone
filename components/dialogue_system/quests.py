@@ -43,32 +43,19 @@ class QuestSystem:
         for flag_name, value in initial_flags.items():
             self.flags.set_flag(flag_name, value)
             
+        # Save flags to disk
+        self.flags.save_flags()
         return True
     
-    def update_quest_progress(self, quest_name, objective_id, value=True):
-        """Update progress on a specific quest objective"""
-        if quest_name not in self.active_quests:
-            return False
+    def update_quest_progress(self, quest_name, flag_name, value=None):
+        """Update a specific quest flag"""
+        if value is not None:
+            self.flags.set_flag(flag_name, value)
+        else:
+            # Increment numeric flags by default
+            self.flags.increment_flag(flag_name)
             
-        # Format: {quest_name}_objective_{objective_id}
-        flag_name = f"{quest_name}_objective_{objective_id}"
-        self.flags.set_flag(flag_name, value)
-        
-        # Check if quest is completed
-        quest_data = self.active_quests.get(quest_name, {})
-        objectives = quest_data.get("objectives", [])
-        
-        all_completed = True
-        for obj in objectives:
-            obj_id = obj.get("id")
-            obj_flag = f"{quest_name}_objective_{obj_id}"
-            if not self.flags.get_flag(obj_flag, False):
-                all_completed = False
-                break
-        
-        if all_completed:
-            self.complete_quest(quest_name)
-            
+        # Don't save immediately to avoid lag
         return True
     
     def complete_quest(self, quest_name):
@@ -85,13 +72,15 @@ class QuestSystem:
         # Handle rewards
         for reward_type, value in rewards.items():
             if reward_type == "silver":
-                # This is a placeholder for adding silver to player
-                print(f"Awarded {value} silver")
+                # This is a placeholder - actual reward handled by quest_manager
+                pass
             elif reward_type == "flags":
                 # Set flags as rewards
                 for flag_name, flag_value in value.items():
                     self.flags.set_flag(flag_name, flag_value)
         
+        # Save flags to disk after completing quest
+        self.flags.save_flags()
         return True
     
     def get_quest_status(self, quest_name):

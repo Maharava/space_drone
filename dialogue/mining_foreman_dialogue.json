@@ -9,11 +9,11 @@
         }
     },
     "root": {
-        "npc_text": "Hello, traveler! Are you interested in earning some ore?",
+        "npc_text": "G'day, I'm the mining foreman. Looking for work?",
         "options": [
             {
-                "text": "Tell me more.",
-                "next_node": "details",
+                "text": "Tell me more about mining work.",
+                "next_node": "quest_offer",
                 "triggers": {"MiningQuestOffered": true}
             },
             {
@@ -23,8 +23,8 @@
             }
         ]
     },
-    "details": {
-        "npc_text": "Great! Here's what I need you to do - gather 5 rare ore!",
+    "quest_offer": {
+        "npc_text": "Right, here's what I need - gather 5 rare ore from the Copernicus Belt. You'll find the richest deposits toward the center.",
         "options": [
             {
                 "text": "I'll do it.",
@@ -32,14 +32,14 @@
                 "triggers": {"MiningQuestAccepted": true}
             },
             {
-                "text": "On second thought, no thanks.",
+                "text": "Too risky. No thanks.",
                 "next_node": "end",
                 "triggers": {"MiningQuestOffered": false}
             }
         ]
     },
     "accepted": {
-        "npc_text": "Excellent! Bring me the ore when you have enough.",
+        "npc_text": "Good on ya! The Belt's south of here. Look for purple-tinted asteroids for rare ore. Come back when you've got 5.",
         "options": [
             {
                 "text": "I'll be back with the ore.",
@@ -49,23 +49,38 @@
         ]
     },
     "check_progress": {
-        "npc_text": "Have you collected the ore I requested?",
+        "npc_text": "How's the hunt going? Found those 5 rare ore pieces yet?",
         "options": [
             {
-                "text": "Yes, here it is.",
+                "text": "Yes, I have them right here.",
                 "next_node": "completion",
                 "condition": {"OreCollected": 5},
                 "triggers": {"MiningQuestCompleted": true}
             },
             {
-                "text": "Not yet, I'm still working on it.",
+                "text": "Not yet. Where should I look again?",
+                "next_node": "reminder",
+                "triggers": {}
+            },
+            {
+                "text": "I'll get back to it.",
+                "next_node": "end",
+                "triggers": {}
+            }
+        ]
+    },
+    "reminder": {
+        "npc_text": "Head to the Copernicus Belt, south of here. The purple-tinted asteroids often contain rare ore.",
+        "options": [
+            {
+                "text": "Thanks, I'll keep looking.",
                 "next_node": "end",
                 "triggers": {}
             }
         ]
     },
     "completion": {
-        "npc_text": "Excellent work! Here's your reward of 50 silver pieces.",
+        "npc_text": "Excellent work! This ore's exactly what we needed. Here's your 50 silver as promised.",
         "options": [
             {
                 "text": "Thank you.",
@@ -75,10 +90,10 @@
         ]
     },
     "post_completion": {
-        "npc_text": "Thanks again for your help with the ore. Let me know if you're looking for more work in the future.",
+        "npc_text": "Thanks again for your help with the ore. Check back later for more work.",
         "options": [
             {
-                "text": "I'll keep that in mind.",
+                "text": "Will do.",
                 "next_node": "end",
                 "triggers": {}
             }
