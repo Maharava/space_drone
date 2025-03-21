@@ -6,6 +6,13 @@ from components.weapon import create_weapon
 from components.hangar import Hangar
 from components.module import *
 
+# In components/player.py
+
+# Add this line to Player.__init__ method:
+
+# Modify add_ore method to update quest progress:
+
+
 class PlayerStats:
     """Player stats that can be upgraded"""
     def __init__(self):
@@ -25,6 +32,9 @@ class PlayerStats:
         
         # Currency
         self.silver = 50  # Starting silver
+        
+        
+        self.game = None  # Reference to the game, set later
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
@@ -193,9 +203,8 @@ class Player(pygame.sprite.Sprite):
             
             return True
         return False
-    
+        
     def add_ore(self, item):
-        """Add item to inventory"""
         # Find slot with same item that isn't full
         for row in range(INVENTORY_ROWS):
             for col in range(INVENTORY_COLS):
@@ -204,6 +213,11 @@ class Player(pygame.sprite.Sprite):
                 if slot["item"] and slot["item"].name == item.name and slot["count"] < item.max_stack:
                     slot["count"] += 1
                     self.total_ore += 1
+                    
+                    # Update quest progress
+                    if self.game and hasattr(self.game, 'quest_manager'):
+                        self.game.quest_manager.update_quest_progress(item)
+                        
                     return True
         
         # Find empty slot if no existing stack has room
@@ -214,6 +228,11 @@ class Player(pygame.sprite.Sprite):
                     slot["item"] = item
                     slot["count"] = 1
                     self.total_ore += 1
+                    
+                    # Update quest progress
+                    if self.game and hasattr(self.game, 'quest_manager'):
+                        self.game.quest_manager.update_quest_progress(item)
+                        
                     return True
         
         # Inventory full

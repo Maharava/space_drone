@@ -5,9 +5,9 @@ from components.map.area_state import AreaState
 
 class MapSystem:
     """Main map system that coordinates map loading, spawning, and state tracking"""
-    def __init__(self, all_sprites, asteroids):
+    def __init__(self, all_sprites, asteroids, game=None):
         self.map_loader = MapLoader()
-        self.spawn_manager = SpawnManager(all_sprites, asteroids)
+        self.spawn_manager = SpawnManager(all_sprites, asteroids, game)
         
         self.current_area_id = None
         self.previous_area_id = None

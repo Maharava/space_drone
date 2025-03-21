@@ -18,7 +18,13 @@ from ui.conversation_ui import ConversationUI
 from ui.interact_ui import InteractUI
 from ui.merchant_ui import MerchantUI
 from utils import load_image
+from quests.quest_manager import QuestManager
 from game_state import *
+# Use either of these imports:
+from quests import QuestManager  # Import from quests package
+
+
+
 
 class Game:
     def __init__(self):
@@ -53,7 +59,7 @@ class Game:
         self.camera = Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
         
         # Create map system
-        self.map_system = MapSystem(self.all_sprites, self.asteroids)
+        self.map_system = MapSystem(self.all_sprites, self.asteroids, self)
         
         # Create UI elements
         self.inventory_ui = InventoryUI(self.player)
@@ -62,6 +68,9 @@ class Game:
         self.conversation_ui = ConversationUI()
         self.interact_ui = InteractUI()
         self.merchant_ui = MerchantUI(self.player)
+        
+        self.quest_manager = QuestManager(self)
+        self.player.game = self
         
         # Load initial area - Copernicus Belt
         if not self.map_system.change_area("copernicus-belt")[0]:

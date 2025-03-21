@@ -6,10 +6,11 @@ from components.space_station import SpaceStation
 
 class SpawnManager:
     """Component for spawning game objects in areas"""
-    def __init__(self, all_sprites, asteroids):
+    def __init__(self, all_sprites, asteroids, game=None):
         self.all_sprites = all_sprites
         self.asteroids = asteroids
         self.stations = pygame.sprite.Group()
+        self.game = game  # Store reference to the main game
     
     def clear_objects(self):
         """Clear all objects from the area"""
@@ -59,6 +60,10 @@ class SpawnManager:
         # Add to sprite groups
         self.all_sprites.add(station)
         self.stations.add(station)
+        
+        # Add dialogue if quest manager exists
+        if hasattr(self.game, 'quest_manager'):
+            self.game.quest_manager.add_dialogue_to_station(station)
         
         return station
     

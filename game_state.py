@@ -135,6 +135,25 @@ class HangarState(GameState):
 
 class ConversationState(GameState):
     """Conversation UI state"""
+    def enter(self):
+        # Start dialogue with nearest station
+        station = self.game.map_system.get_nearest_station(self.game.player.position)
+        if station:
+            # Try to start quest dialogue if available
+            if hasattr(self.game, 'quest_manager'):
+                if self.game.quest_manager.start_station_dialogue(station):
+                    text = self.game.quest_manager.get_current_text()
+                    options = self.game.quest_manager.get_current_options()
+                    
+                    # Update UI with dialogue options
+                    self.game.conversation_ui.set_dialog(station.name, text, options)
+                else:
+                    # Fall back to basic dialogue
+                    self.game.conversation_ui.set_dialog(station.name, station.dialog)
+            else:
+                # Use regular dialogue without quest system
+                self.game.conversation_ui.set_dialog(station.name, station.dialog)
+    
     def draw(self, screen):
         # Draw game world in background
         screen.fill(BLACK)
@@ -152,6 +171,29 @@ class ConversationState(GameState):
                 self.game.change_state("running")
             elif result == "barter":
                 self.game.change_state("merchant")
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.game.change_state("running")
+            elif event.key >= pygame.K_1 and event.key <= pygame.K_9:
+                # Handle dialogue option selection
+                if hasattr(self.game, 'quest_manager'):
+                    option_index = event.key - pygame.K_1
+                    options = self.game.quest_manager.get_current_options()
+                    if option_index < len(options):
+                        # Select the option
+                        self.game.quest_manager.select_option(option_index)
+                        
+                        # Update the UI
+                        text = self.game.quest_manager.get_current_text()
+                        options = self.game.quest_manager.get_current_options()
+                        
+                        if text:
+                            self.game.conversation_ui.set_dialog(
+                                self.game.conversation_ui.speaker, text, options
+                            )
+                        else:
+                            # Dialogue ended, return to game
+                            self.game.change_state("running")
 
 class MerchantState(GameState):
     """Merchant UI state"""

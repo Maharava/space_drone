@@ -10,13 +10,15 @@ class ConversationUI(BaseUI):
         # Speaker and dialog text
         self.speaker = ""
         self.dialog = ""
+        self.options = []
         
         # Barter button
         self.barter_button = pygame.Rect(self.bg_rect.centerx - 50, self.bg_rect.bottom - 40, 100, 30)
     
-    def set_dialog(self, speaker, text):
+    def set_dialog(self, speaker, text, options=None):
         self.speaker = speaker
         self.dialog = text
+        self.options = options or []
     
     def draw(self, screen):
         # Draw background
@@ -47,6 +49,14 @@ class ConversationUI(BaseUI):
         if line:
             text_surf = self.font.render(line, True, WHITE)
             screen.blit(text_surf, (self.bg_rect.x + 20, self.bg_rect.y + y_offset))
+            y_offset += 30
+        
+        # Draw options
+        for i, option in enumerate(self.options):
+            if 'text' in option:
+                option_text = self.font.render(f"{i+1}. {option['text']}", True, WHITE)
+                screen.blit(option_text, (self.bg_rect.x + 40, self.bg_rect.y + y_offset))
+                y_offset += 30
         
         # Draw barter button
         pygame.draw.rect(screen, BLUE, self.barter_button)

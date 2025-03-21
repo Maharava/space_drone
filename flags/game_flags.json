@@ -1,0 +1,8 @@
+{
+    "mining_quest_started": true,
+    "mining_quest_completed": false,
+    "MiningQuestOffered": false,
+    "MiningQuestAccepted": false,
+    "OreCollected": 0,
+    "StationInfoMining": true
+}
