@@ -1,185 +1,160 @@
-"""
-Quest manager for the game, handling dialogue and quest systems.
-"""
+"""Quest manager for the game, handling dialogue and quest systems."""
 
 import os
+import json
 from components.dialogue_system.flags import FlagSystem
-from components.dialogue_system.quests import QuestSystem
-from components.dialogue_system.integration import add_dialogue_to_station
+from components.dialogue_system.npc import NPC
 
 class QuestManager:
     """Manages quests and dialogue for the game."""
     def __init__(self, game):
-        """Initialize the quest manager."""
         self.game = game
         
-        # Create directories if they don't exist
+        # Initialize flag system
         os.makedirs("flags", exist_ok=True)
-        
-        # Initialize flag and quest systems
         self.flags = FlagSystem("flags/game_flags.json")
-        self.quest_system = QuestSystem("quests", self.flags)
         
-        # Load the mining quest
-        self.quest_system.start_quest("mining_quest")
+        # Initialize default quest state if needed
+        if not os.path.exists("flags/game_flags.json"):
+            self.init_default_quest_states()
         
-        # Track active dialogue
+        # Active dialogue tracking
         self.current_station = None
         self.current_npc = None
-        self.current_dialogue = None
         
-        print("Quest manager initialized")
+        print("Quest manager initialized with flags:", self.flags.flags)
+    
+    def init_default_quest_states(self):
+        """Initialize default quest states."""
+        default_flags = {
+            "mining_quest": 0  # 0=not started, 1=in progress, 2=completed, 3=failed
+        }
+        self.flags.flags = default_flags
+        self.flags.save_flags()
     
     def add_dialogue_to_station(self, station):
-        """Add dialogue to a station based on its name."""
+        """Add dialogue handlers to a station."""
+        # Only handle Copernicus Station for now
         if station.name == "Copernicus Station":
-            # Add station dialogue
-            dialogue_handler = add_dialogue_to_station(station, "copernicus_station", self.flags)
-            
             # Add Mining Foreman NPC
-            dialogue_handler.add_npc("Mining Foreman", "mining_foreman_dialogue")
-            
-            print(f"Added dialogue to {station.name}")
-            return dialogue_handler
-        
+            station._dialogue_handler = {
+                "npcs": {
+                    "Mining Foreman": NPC("Mining Foreman", "mining_foreman_dialogue", self.flags, self.game)
+                }
+            }
+            print(f"Added dialogue handlers to {station.name}")
+            return station._dialogue_handler
         return None
     
     def start_station_dialogue(self, station):
-        """Start dialogue with a station."""
+        """Start dialogue with a station (basic placeholder)."""
+        # Make sure station has dialogue handlers
         if not hasattr(station, '_dialogue_handler'):
-            return False
+            self.add_dialogue_to_station(station)
         
-        self.current_station = station
-        self.current_npc = None
-        
-        # Start station dialogue
-        result = station._dialogue_handler.start_station_dialogue()
-        if result:
-            self.current_dialogue = station._dialogue_handler
+        # Check if dialogue was added
+        if hasattr(station, '_dialogue_handler'):
+            self.current_station = station
+            self.current_npc = None
             return True
         
         return False
     
     def start_direct_npc_dialogue(self, npc_name):
-        """Start dialogue with a specific NPC - handles state setup"""
-        # Find the current station
+        """Start dialogue with a specific NPC."""
+        # Find nearest station
         station = self.game.map_system.get_nearest_station(self.game.player.position)
         if not station:
             print("No station nearby")
             return False
-            
-        # Make sure station has dialogue
-        if not hasattr(station, '_dialogue_handler'):
-            dialogue_handler = self.add_dialogue_to_station(station)
-            if not dialogue_handler:
-                print(f"Could not add dialogue to {station.name}")
-                return False
         
-        # Get the NPC
-        npc = station._dialogue_handler.get_npc(npc_name)
-        if not npc:
-            print(f"NPC '{npc_name}' not found")
+        # Add dialogue handlers if needed
+        if not hasattr(station, '_dialogue_handler'):
+            self.add_dialogue_to_station(station)
+        
+        # Get NPC
+        if not hasattr(station, '_dialogue_handler') or npc_name not in station._dialogue_handler["npcs"]:
+            print(f"NPC {npc_name} not found at station")
             return False
         
-        # Set current state and start dialogue
-        self.current_station = station
-        self.current_dialogue = station._dialogue_handler
+        npc = station._dialogue_handler["npcs"][npc_name]
         
-        # Make sure we save any pending flag changes before starting dialogue
-        self.flags.save_flags()
-        
-        # Start NPC dialogue
+        # Start conversation
         if npc.start_conversation():
+            self.current_station = station
             self.current_npc = npc
+            print(f"Started dialogue with {npc_name}")
             return True
-            
+        
         return False
     
     def get_current_text(self):
-        """Get the current dialogue text."""
-        if not self.current_dialogue:
-            return None
-        
+        """Get current dialogue text."""
         if self.current_npc:
             return self.current_npc.get_current_text()
-        
-        return self.current_dialogue.get_current_text()
+        return "Welcome to the station."
     
     def get_current_options(self):
-        """Get available dialogue options."""
-        if not self.current_dialogue:
-            return []
-        
+        """Get current dialogue options."""
         if self.current_npc:
             return self.current_npc.get_dialogue_options()
         
-        return self.current_dialogue.get_dialogue_options()
+        # Default station options
+        if self.current_station and self.current_station.name == "Copernicus Station":
+            return [
+                {
+                    "text": "I'd like to speak with the Mining Foreman.",
+                    "index": 0
+                },
+                {
+                    "text": "Just passing through.",
+                    "index": 1
+                }
+            ]
+        
+        return []
     
     def select_option(self, option_index):
-        """Select a dialogue option."""
-        if not self.current_dialogue:
-            return False
-        
+        """Select dialogue option."""
         if self.current_npc:
+            # Process NPC dialogue option
             result = self.current_npc.select_option(option_index)
-            
-            # Check if dialogue ended
-            if not result:
-                self.current_npc = None
-                
-            # Check for quest completion
-            if self.flags.get_flag("MiningQuestCompleted", False):
-                # Add reward to player
-                self.game.player.stats.silver += 50
-                print("Mining quest completed! Rewarded 50 silver.")
-                # Make sure we save this completion state
-                self.flags.save_flags()
-                
             return result
         
-        # Handle station dialogue
-        options = self.current_dialogue.get_dialogue_options()
-        if option_index >= len(options):
-            return False
-        
-        option = options[option_index]
-        option_text = option.get('text', '').lower()
-        
-        # Check if this is about the Mining Foreman
-        if ("mining" in option_text and "foreman" in option_text) or "foreman" in option_text:
-            # First select the option to progress dialogue
-            self.current_dialogue.select_option(option_index)
-            
-            # Then try to start Mining Foreman dialogue
-            if self.start_direct_npc_dialogue("Mining Foreman"):
-                return True
-            
-            return False
-        
-        # Standard option selection
-        result = self.current_dialogue.select_option(option_index)
-        
-        # Check if dialogue ended
-        if not result:
-            self.current_dialogue = None
-            
-        return result
-    
-    def update_quest_progress(self, item):
-        """Update quest progress when an item is collected."""
-        if item.name == "Rare Ore":
-            # Check if quest is active
-            if self.flags.get_flag("MiningQuestAccepted", False) and not self.flags.get_flag("MiningQuestCompleted", False):
-                # Get current count
-                current_count = self.flags.get_flag("OreCollected", 0)
-                # Increment count
-                self.flags.set_flag("OreCollected", current_count + 1)
-                print(f"Mining quest progress: {current_count + 1}/5 Rare Ore collected")
-                
-                # Only save periodically to avoid lag
-                if (current_count + 1) % 5 == 0 or (current_count + 1) >= 5:
-                    self.flags.save_flags()
-                    
-                return True
+        # Handle station dialogue options
+        if self.current_station:
+            # Handle Mining Foreman option for Copernicus Station
+            if option_index == 0 and self.current_station.name == "Copernicus Station":
+                return self.start_direct_npc_dialogue("Mining Foreman")
         
         return False
+    
+    def get_mining_quest_progress(self):
+        """Get mining quest progress."""
+        status = self.flags.get_flag("mining_quest", 0)
+        if status == 0:
+            return "Not Started"
+        elif status == 1:
+            # In progress - count rare ore
+            ore_count = self.count_rare_ore()
+            return f"In Progress ({ore_count}/5 ore)"
+        elif status == 2:
+            return "Completed"
+        else:
+            return "Failed"
+    
+    def count_rare_ore(self):
+        """Count how much rare ore the player has."""
+        try:
+            rare_ore_count = 0
+            
+            # Check inventory for Rare Ore
+            for row in self.game.player.inventory:
+                for slot in row:
+                    if slot["item"] and slot["item"].name == "Rare Ore":
+                        rare_ore_count += slot["count"]
+            
+            return rare_ore_count
+        except Exception as e:
+            print(f"Error counting ore: {e}")
+            return 0

@@ -24,46 +24,67 @@ class JobsBoardUI(BaseUI):
         """Update the list of available quests"""
         self.quest_buttons = []
         
+        # Check if quest manager exists
         if not hasattr(self.game, 'quest_manager'):
             return
         
-        current_station = self.game.map_system.get_nearest_station(self.game.player.position)
-        if not current_station:
+        # Check current station
+        station = self.game.map_system.get_nearest_station(self.game.player.position)
+        if not station:
             return
             
-        # Add mining quest if at Copernicus Station
-        if current_station.name == "Copernicus Station":
-            # Get quest status from flag system
-            quest_accepted = self.game.quest_manager.flags.get_flag("MiningQuestAccepted", False)
-            quest_completed = self.game.quest_manager.flags.get_flag("MiningQuestCompleted", False)
+        # Add Copernicus Station quests
+        if station.name == "Copernicus Station":
+            # Mining Task
+            mining_status = self.game.quest_manager.flags.get_flag("mining_quest", 0)
             
-            if quest_completed:
-                status = "Completed"
-                color = GREEN
-            elif quest_accepted:
-                status = "Active"
-                color = YELLOW
-            else:
-                status = "Available"
-                color = WHITE
+            # Get status info
+            status_text = self.get_quest_status_text(mining_status)
+            status_color = self.get_quest_status_color(mining_status)
             
-            # Add quest button
-            button_height = 60
+            # Create quest button
             button_rect = pygame.Rect(
                 self.quest_area.x,
                 self.quest_area.y,
                 self.quest_area.width,
-                button_height
+                60
             )
             
+            # Add to button list
             self.quest_buttons.append({
                 "rect": button_rect,
                 "name": "Mining Task",
                 "description": "Collect 5 rare ore for the Mining Foreman.",
                 "npc": "Mining Foreman",
-                "status": status,
-                "color": color
+                "status": status_text,
+                "color": status_color,
+                "status_code": mining_status
             })
+    
+    def get_quest_status_text(self, status_code):
+        """Get display text for quest status."""
+        if status_code == 0:
+            return "Available"
+        elif status_code == 1:
+            # In progress - show ore count
+            if hasattr(self.game, 'quest_manager'):
+                return self.game.quest_manager.get_mining_quest_progress()
+            return "In Progress"
+        elif status_code == 2:
+            return "Completed"
+        else:
+            return "Failed"
+    
+    def get_quest_status_color(self, status_code):
+        """Get color for quest status."""
+        if status_code == 0:
+            return WHITE  # Available
+        elif status_code == 1:
+            return YELLOW  # In Progress
+        elif status_code == 2:
+            return GREEN  # Completed
+        else:
+            return RED  # Failed
             
     def draw(self, screen):
         # Draw base UI
@@ -102,22 +123,23 @@ class JobsBoardUI(BaseUI):
                     quest["rect"].y + 10
                 ))
                 
-                # Draw talk button
-                talk_rect = pygame.Rect(
-                    quest["rect"].right - 70,
-                    quest["rect"].bottom - 25,
-                    60, 20
-                )
-                pygame.draw.rect(screen, BLUE, talk_rect)
-                
-                talk_text = self.small_font.render("Talk", True, WHITE)
-                screen.blit(talk_text, (
-                    talk_rect.centerx - talk_text.get_width() // 2,
-                    talk_rect.centery - talk_text.get_height() // 2
-                ))
-                
-                # Add talk button to quest data
-                quest["talk_rect"] = talk_rect
+                # Draw talk button if not completed
+                if quest["status_code"] != 2:  # Not completed
+                    talk_rect = pygame.Rect(
+                        quest["rect"].right - 70,
+                        quest["rect"].bottom - 25,
+                        60, 20
+                    )
+                    pygame.draw.rect(screen, BLUE, talk_rect)
+                    
+                    talk_text = self.small_font.render("Talk", True, WHITE)
+                    screen.blit(talk_text, (
+                        talk_rect.centerx - talk_text.get_width() // 2,
+                        talk_rect.centery - talk_text.get_height() // 2
+                    ))
+                    
+                    # Store talk button rect
+                    quest["talk_rect"] = talk_rect
     
     def handle_click(self, pos):
         # Check base UI clicks

@@ -3,6 +3,8 @@
     "mining_quest_completed": false,
     "MiningQuestOffered": true,
     "MiningQuestAccepted": true,
-    "OreCollected": 6,
-    "StationInfoMining": true
+    "OreCollected": 0,
+    "StationInfoMining": true,
+    "MiningQuestCompleted": true,
+    "mining_quest": 2
 }

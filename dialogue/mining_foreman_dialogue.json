@@ -1,20 +1,11 @@
 {
-    "node_conditions": {
-        "check_progress": {
-            "MiningQuestAccepted": true,
-            "MiningQuestCompleted": false
-        },
-        "post_completion": {
-            "MiningQuestCompleted": true
-        }
-    },
     "root": {
         "npc_text": "G'day, I'm the mining foreman. Looking for work?",
         "options": [
             {
                 "text": "Tell me more about mining work.",
                 "next_node": "quest_offer",
-                "triggers": {"MiningQuestOffered": true}
+                "triggers": {}
             },
             {
                 "text": "Not interested.",
@@ -29,12 +20,12 @@
             {
                 "text": "I'll do it.",
                 "next_node": "accepted",
-                "triggers": {"MiningQuestAccepted": true}
+                "triggers": {"mining_quest": 1}
             },
             {
                 "text": "Too risky. No thanks.",
                 "next_node": "end",
-                "triggers": {"MiningQuestOffered": false}
+                "triggers": {}
             }
         ]
     },
@@ -54,8 +45,8 @@
             {
                 "text": "Yes, I have them right here.",
                 "next_node": "completion",
-                "condition": {"OreCollected": 5},
-                "triggers": {"MiningQuestCompleted": true}
+                "triggers": {"mining_quest": 2},
+                "condition": {"has_enough_ore": true}
             },
             {
                 "text": "Not yet. Where should I look again?",
@@ -89,7 +80,7 @@
             }
         ]
     },
-    "post_completion": {
+    "completed": {
         "npc_text": "Thanks again for your help with the ore. Check back later for more work.",
         "options": [
             {

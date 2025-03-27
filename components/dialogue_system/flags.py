@@ -2,59 +2,44 @@ import json
 import os
 
 class FlagSystem:
-    def __init__(self, flags_file="flags.json"):
+    """Simple flag system to track game state."""
+    def __init__(self, flags_file="flags/game_flags.json"):
         self.flags_file = flags_file
-        self.flags = self._load_flags()
-        self.save_needed = False
+        self.flags = {}
+        self.load_flags()
     
-    def _load_flags(self):
-        """Load flags from file or create new if file doesn't exist"""
-        if os.path.exists(self.flags_file):
-            try:
+    def load_flags(self):
+        """Load flags from file."""
+        try:
+            if os.path.exists(self.flags_file):
                 with open(self.flags_file, 'r') as f:
-                    return json.load(f)
-            except:
-                # Fall back to empty dict if loading fails
-                return {}
-        return {}
+                    self.flags = json.load(f)
+                    print(f"Loaded flags: {self.flags}")
+        except Exception as e:
+            print(f"Error loading flags: {e}")
+            # Continue with empty flags if file can't be loaded
     
     def save_flags(self):
-        """Save flags to file - only actually saves if needed"""
-        if not self.save_needed:
-            return
-            
+        """Save flags to file."""
         try:
             # Ensure directory exists
             os.makedirs(os.path.dirname(self.flags_file), exist_ok=True)
             with open(self.flags_file, 'w') as f:
                 json.dump(self.flags, f, indent=4)
-            self.save_needed = False
         except Exception as e:
             print(f"Error saving flags: {e}")
     
-    def get_flag(self, flag_name, default=None):
-        """Get a flag value"""
+    def get_flag(self, flag_name, default=0):
+        """Get flag value."""
         return self.flags.get(flag_name, default)
     
     def set_flag(self, flag_name, value):
-        """Set a flag value - defer saving to avoid lag"""
-        if self.flags.get(flag_name) != value:
-            self.flags[flag_name] = value
-            self.save_needed = True
+        """Set flag value and save immediately."""
+        self.flags[flag_name] = value
+        self.save_flags()
     
     def increment_flag(self, flag_name, amount=1):
-        """Increment a numeric flag"""
+        """Increment a numeric flag."""
         current_value = self.get_flag(flag_name, 0)
-        self.set_flag(flag_name, current_value + amount)
-    
-    def check_condition(self, condition):
-        """Check if a condition is met based on flags
-        Condition format: {"flag_name": value}
-        """
-        if not condition:
-            return True  # Empty condition is always met
-            
-        for flag_name, required_value in condition.items():
-            if self.get_flag(flag_name) != required_value:
-                return False
-        return True
+        self.flags[flag_name] = current_value + amount
+        self.save_flags()

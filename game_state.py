@@ -146,7 +146,7 @@ class HangarState(GameState):
                 self.game.change_state("running")
 
 class ConversationState(GameState):
-    """Conversation UI state with stations"""
+    """Station conversation UI state"""
     def enter(self):
         # Start dialogue with nearest station
         station = self.game.map_system.get_nearest_station(self.game.player.position)
@@ -234,14 +234,17 @@ class MerchantState(GameState):
         self.game.merchant_ui.draw(screen)
     
     def handle_event(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            self.game.change_state("running")
+        elif event.type == pygame.MOUSEBUTTONDOWN:
             result = self.game.merchant_ui.handle_click(event.pos)
             if result == "close":
                 self.game.change_state("running")
 
 class JobsBoardState(GameState):
-    """Jobs board UI state"""
+    """Jobs board UI state for displaying available quests."""
     def enter(self):
+        # Update quest list when entering
         self.game.jobs_board_ui.update_quests()
     
     def update(self):
@@ -261,22 +264,27 @@ class JobsBoardState(GameState):
             self.game.change_state("running")
         elif event.type == pygame.MOUSEBUTTONDOWN:
             result = self.game.jobs_board_ui.handle_click(event.pos)
+            
             if result == "close":
+                # Close button clicked
                 self.game.change_state("running")
             elif isinstance(result, dict) and result["action"] == "talk_quest":
-                # Start dialogue with specific NPC
-                if hasattr(self.game, 'quest_manager'):
-                    # Use our direct NPC dialogue method
-                    if self.game.quest_manager.start_direct_npc_dialogue(result["npc"]):
-                        # Get the dialogue content
-                        text = self.game.quest_manager.get_current_text()
-                        options = self.game.quest_manager.get_current_options()
-                        
-                        # Update the NPC dialogue UI with the correct content
-                        self.game.npc_dialogue_ui.set_dialogue(result["npc"], text, options)
-                        
-                        # Switch to NPC dialogue state
-                        self.game.change_state("npc_dialogue")
+                # Talk to specific NPC about quest
+                npc_name = result["npc"]
+                
+                # Start NPC dialogue
+                if self.game.quest_manager.start_direct_npc_dialogue(npc_name):
+                    # Get dialogue content
+                    text = self.game.quest_manager.get_current_text()
+                    options = self.game.quest_manager.get_current_options()
+                    
+                    # Set up NPC dialogue UI
+                    self.game.npc_dialogue_ui.set_dialogue(npc_name, text, options)
+                    
+                    # Change to NPC dialogue state
+                    self.game.change_state("npc_dialogue")
+                else:
+                    print(f"Failed to start dialogue with {npc_name}")
 
 class TextDialogState(GameState):
     """Text dialog UI state for displaying longer text"""
@@ -312,7 +320,7 @@ class TextDialogState(GameState):
 class NPCDialogueState(GameState):
     """NPC dialogue state"""
     def enter(self):
-        # Dialogue already set up before entering state
+        # Dialogue should already be set up before entering this state
         pass
     
     def update(self):
@@ -332,36 +340,40 @@ class NPCDialogueState(GameState):
             if event.key == pygame.K_ESCAPE:
                 self.game.change_state("running")
             elif event.key >= pygame.K_1 and event.key <= pygame.K_9:
-                # Handle dialogue option selection by number keys
-                if hasattr(self.game, 'quest_manager'):
-                    option_index = event.key - pygame.K_1
-                    options = self.game.quest_manager.get_current_options()
-                    if option_index < len(options):
-                        self.select_dialogue_option(option_index)
+                # Get option index from key (1-9)
+                option_index = event.key - pygame.K_1
+                
+                # Get available options
+                options = self.game.quest_manager.get_current_options()
+                
+                # Select option if valid
+                if 0 <= option_index < len(options):
+                    self.select_option(option_index)
+        
         elif event.type == pygame.MOUSEBUTTONDOWN:
+            # Handle UI clicks
             result = self.game.npc_dialogue_ui.handle_click(event.pos)
+            
             if result == "close":
+                # Close button clicked
                 self.game.change_state("running")
             elif isinstance(result, dict) and result["action"] == "select_option":
-                # Handle option selection by clicking
-                self.select_dialogue_option(result["index"])
+                # Option button clicked
+                self.select_option(result["index"])
     
-    def select_dialogue_option(self, option_index):
-        """Handle selecting a dialogue option"""
-        if hasattr(self.game, 'quest_manager'):
-            # Select the option in quest manager
-            self.game.quest_manager.select_option(option_index)
-            
-            # Get updated dialogue
+    def select_option(self, option_index):
+        """Select dialogue option and handle result."""
+        # Process option selection
+        result = self.game.quest_manager.select_option(option_index)
+        
+        if result:
+            # Dialogue continues - update UI
+            npc_name = self.game.quest_manager.current_npc.name
             text = self.game.quest_manager.get_current_text()
             options = self.game.quest_manager.get_current_options()
             
-            if text:
-                # Get NPC name
-                if self.game.quest_manager.current_npc:
-                    npc_name = self.game.quest_manager.current_npc.name
-                    # Update dialogue UI
-                    self.game.npc_dialogue_ui.set_dialogue(npc_name, text, options)
-            else:
-                # Dialogue ended, return to game
-                self.game.change_state("running")
+            # Update NPC dialogue UI
+            self.game.npc_dialogue_ui.set_dialogue(npc_name, text, options)
+        else:
+            # Dialogue ended
+            self.game.change_state("running")
